@@ -1,15 +1,10 @@
 #include <string.h>
-
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
-
 #include <driver/spi_master.h>
 #include <driver/gpio.h>
-
 #include "esp_log.h"
-
 #include "include/mirf.h"
-
 #define TAG "NRF24"
 
 // SPI Stuff
@@ -18,11 +13,16 @@
 // #elif CONFIG_SPI3_HOST
 #define HOST_ID SPI3_HOST
 // #endif
+#define CONFIG_MISO_GPIO GPIO_NUM_37
+#define CONFIG_MOSI_GPIO GPIO_NUM_35
+#define CONFIG_SCLK_GPIO GPIO_NUM_36
+#define CONFIG_CE_GPIO GPIO_NUM_38
+#define CONFIG_CSN_GPIO GPIO_NUM_40
 
-static const int SPI_Frequency = 4000000; // Stable even with a long jumper cable
+static const int SPI_Frequency = 10000000; // Stable even with a long jumper cable
 // static const int SPI_Frequency = 6000000;
 // static const int SPI_Frequency = 8000000; // Requires a short jumper cable
-// static const int SPI_Frequency = 10000000; // Unstable even with a short jumper cable
+// static const int SPI_Frequency = idf.py monitor -b <baud>0000000; // Unstable even with a short jumper cable
 
 const char rf24_datarates[][8] = {"1Mbps", "2Mbps", "250Kbps"};
 const char rf24_crclength[][10] = {"Disabled", "8 bits", "16 bits"};
@@ -77,8 +77,8 @@ void Nrf24_init(NRF24_t *dev)
 
     dev->cePin = CONFIG_CE_GPIO;
     dev->csnPin = CONFIG_CSN_GPIO;
-    dev->channel = 1;
-    dev->payload = 16;
+    dev->channel = 115;
+    dev->payload = 32;
     dev->_SPIHandle = handle;
 }
 

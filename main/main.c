@@ -40,14 +40,63 @@ void AdvancedSettings(NRF24_t *dev)
     Nrf24_setRetransmitDelay(dev, CONFIG_RETRANSMIT_DELAY);
 }
 #endif // CONFIG_ADVANCED
+// void receiver(void *pvParameters)
+// {
+//     ESP_LOGI(pcTaskGetName(0), "Start");
+//     NRF24_t dev;
+//     Nrf24_init(&dev);
+//     uint8_t payload = 32;
+//     uint8_t channel = (uint8_t)115;
+//     Nrf24_SetSpeedDataRates(&dev, 0);
 
-void sender(void *pvParameters)
+//     Nrf24_config(&dev, channel, payload);
+
+//     // Set own address using 5 characters
+//     esp_err_t ret = Nrf24_setRADDR(&dev, (uint8_t *)"FGHIJ");
+//     if (ret != ESP_OK)
+//     {
+//         ESP_LOGE(pcTaskGetName(0), "nrf24l01 not installed");
+//         while (1)
+//         {
+//             vTaskDelay(1);
+//         }
+//     }
+
+//     // Print settings
+//     Nrf24_printDetails(&dev);
+//     ESP_LOGI(pcTaskGetName(0), "Listening...");
+
+//     uint8_t buf[32];
+
+//     // Clear RX FiFo
+//     while (1)
+//     {
+//         if (Nrf24_dataReady(&dev) == false)
+//             break;
+//         Nrf24_getData(&dev, buf);
+//     }
+
+//     while (1)
+//     {
+//         // When the program is received, the received data is output from the serial port
+//         if (Nrf24_dataReady(&dev))
+//         {
+//             Nrf24_getData(&dev, buf);
+//             ESP_LOGI(pcTaskGetName(0), "Got data:%s", buf);
+//             // ESP_LOG_BUFFER_HEXDUMP(pcTaskGetName(0), buf, payload, ESP_LOG_INFO);
+//         }
+//         vTaskDelay(1);
+//     }
+// }
+
+
+// void sender(void *pvParameters)
+void sender()
 {
     ESP_LOGI(pcTaskGetName(0), "Start");
     NRF24_t dev;
     Nrf24_init(&dev);
     uint8_t payload = 32;
-
     uint8_t channel = (uint8_t)115;
     Nrf24_config(&dev, channel, payload);
 
@@ -62,9 +111,7 @@ void sender(void *pvParameters)
         }
     }
 
-#if CONFIG_ADVANCED
-    AdvancedSettings(&dev);
-#endif // CONFIG_ADVANCED
+    Nrf24_SetSpeedDataRates(&dev, 0);
 
     // Print settings
     Nrf24_printDetails(&dev);
@@ -77,7 +124,7 @@ void sender(void *pvParameters)
         Nrf24_send(&dev, buf);
         vTaskDelay(1);
         ESP_LOGI(pcTaskGetName(0), "Wait for sending.....");
-        if (Nrf24_isSend(&dev, 1000))
+        if (Nrf24_isSend(&dev, 2000))
         {
             ESP_LOGI(pcTaskGetName(0), "Send success:%s", buf);
         }
@@ -89,7 +136,11 @@ void sender(void *pvParameters)
     }
 }
 
-// void app_main(void)
-// {
-//     xTaskCreate(&sender, "SENDER", 1024 * 3, NULL, 2, NULL);
-// }
+void app_main(void)
+{
+    // vTaskDelay(1000 / portTICK_PERIOD_MS);
+
+    xTaskCreate(&sender, "SENDER", 1024 * 3, NULL, 2, NULL);
+    // sender();
+    // xTaskCreate(&receiver, "RECEIVER", 1024 * 3, NULL, 2, NULL);
+}
