@@ -26,6 +26,7 @@
         "spi_master.h": "c",
         "wifi_connection.h": "c",
         "stdbool.h": "c",
-        "random": "c"
+        "random": "c",
+        "cjson.h": "c"
     }
 }

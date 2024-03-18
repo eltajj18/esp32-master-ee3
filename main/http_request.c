@@ -12,8 +12,8 @@
 #include "cJSON.h"
 #include "include/http_request.h"
 
-#define GAME_SIZE 9
-char game_state[GAME_SIZE];
+
+char game_state[9];
 
 int retry_num = 0;
 
@@ -123,7 +123,7 @@ void get_rest_array()
     esp_http_client_cleanup(client);
 }
 
-char *get_game_state()
+char* get_game_state()
 {
     return game_state;
 }
@@ -229,16 +229,13 @@ bool poll_if_ready() {
 }
 
 
-void app_main(void)
-{
-    nvs_flash_init();
-    wifi_connection();
+// void app_main(void)
+// {
+//     nvs_flash_init();
+//     wifi_connection();
 
-    vTaskDelay(2000 / portTICK_PERIOD_MS);
-    printf("WIFI was initiated ...........\n\n");
+//     vTaskDelay(2000 / portTICK_PERIOD_MS);
+//     printf("WIFI was initiated ...........\n\n");
 
-    if (poll_if_ready())
-    {
-        printf("Finished ... \n\n");
-    }
-}
+  
+// }

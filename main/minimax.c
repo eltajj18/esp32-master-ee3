@@ -1,10 +1,19 @@
 #include <stdio.h>
 #include <stdbool.h>
-
+#include "include/minimax.h"
 #define PLAYER 'X'
 #define COMPUTER 'O'
 
 // Function to evaluate the score of the board
+void draw(char b[9])
+{
+    printf(" %c | %c | %c\n", (b[0]), (b[1]), (b[2]));
+    printf("---+---+---\n");
+    printf(" %c | %c | %c\n", (b[3]), (b[4]), (b[5]));
+    printf("---+---+---\n");
+    printf(" %c | %c | %c\n", (b[6]), (b[7]), (b[8]));
+}
+
 int evaluate(char board[3][3])
 {
     // Checking for Rows for X or O victory.
@@ -135,11 +144,6 @@ int minimax(char board[3][3], int depth, bool isMax)
     }
 }
 
-// Struct to represent a move
-typedef struct Move
-{
-    int row, col;
-} Move;
 
 // Function to find the best move for the computer
 Move findBestMove(char board[3][3])
@@ -182,11 +186,11 @@ Move findBestMove(char board[3][3])
 // int main()
 // {
 //     char board[3][3] = {
+//         {'X', 'O', 'X'},
 //         {'X', 'X', 'O'},
-//         {'O', 'O', 'X'},
-//         {'X', 'X', 'O'}};
-//     int x = evaluate(board);
-//     printf("%d\n", x);
+//         {'O', 'O', 'O'}};
+//     int x = evaluate(board); //+10 for computer -10 for player 0 for tie
+//     printf("Evaluate the board: %d\n", x);
 //     int y = minimax(board, 0, false);
 //     printf("%d\n", y);
 //     Move bestMove = findBestMove(board);
@@ -195,3 +199,11 @@ Move findBestMove(char board[3][3])
 
 //     return 0;
 // }
+
+void transformArrayTo3x3(char* gamestate ,char board[3][3]) {
+   for (int i = 0; i < 9; ++i) {
+        // Convert the string to a char and assign to the correct position in the board
+        // Note: Since each string is known to be a single character, we directly access it with [0]
+        board[i / 3][i % 3] = gamestate[i]; // Dividing and modulo by 3 maps the index to 2D coordinates
+    }
+    }
