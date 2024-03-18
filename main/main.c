@@ -1,154 +1,81 @@
-/*	Mirf Example
-
-    This example code is in the Public Domain (or CC0 licensed, at your option.)
-
-    Unless required by applicable law or agreed to in writing, this
-    software is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
-    CONDITIONS OF ANY KIND, either express or implied.
-*/
-
 #include <stdio.h>
-#include <inttypes.h>
-#include <stdlib.h>
-#include <string.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include "driver/gpio.h"
 #include "esp_log.h"
+#include "sdkconfig.h"
+#include "include/http_request.h"
+#include "include/minimax.h"
+#include <stdbool.h>
 
-#include "include/mirf.h"
+volatile bool is_processing = false;
+// #define BLINK_GPIO_1 2
+#define BUTTON_GPIO 18
 
-// #if CONFIG_ADVANCED
-// void AdvancedSettings(NRF24_t * dev)
+// int count = 0;
+
+
+void button_press_task(void *pvParameter) {
+    // Ensure we don't react to any button presses until ready
+    if(is_processing) {
+        vTaskDelete(NULL); // Safely exit this task if it's somehow started while processing
+        return;
+    }
+
+    is_processing = true;
+    
+    post_rest_button(); // Assume this sends a signal to the server to capture an image
+    
+    // Start polling for the new array after the initial post request
+    // This function should contain logic that waits for the new game state to be ready
+    // and retrieves it. Once done, is_processing can be set to false to allow new button presses.
+    if(poll_if_ready()){
+       get_rest_array();
+       char* board = get_game_state();
+       
+    }
+    //check if game is over , if yes send the score through the nrf
+    //else calculate the next move and sent it through the nrf and that is it
+
+
+
+
+
+
+    is_processing = false; // Ready for a new button press now
+
+    vTaskDelete(NULL); // Task completed, clean up
+}
+
+
+
+// void app_main(void) 
 // {
-// #if CONFIG_RF_RATIO_2M
-// 	ESP_LOGW(pcTaskGetName(0), "Set RF Data Ratio to 2MBps");
-// 	Nrf24_SetSpeedDataRates(dev, 1);
-// #endif // CONFIG_RF_RATIO_2M
+//     nvs_flash_init();
+//     wifi_connection();
+//         /* Reset the pin */
+//     gpio_reset_pin(BUTTON_GPIO);
+//     /* Set the GPIOs to Output mode */
+//     gpio_set_direction(BUTTON_GPIO, GPIO_MODE_INPUT);
+//     /* Enable Pullup for Input Pin */
+//     gpio_pullup_en(BUTTON_GPIO);
+    
+//     while (1) 
+//     {
+//         if( gpio_get_level(BUTTON_GPIO) == 0 && !is_processing )
+//         {
 
-// #if CONFIG_RF_RATIO_1M
-// 	ESP_LOGW(pcTaskGetName(0), "Set RF Data Ratio to 1MBps");
-// 	Nrf24_SetSpeedDataRates(dev, 0);
-// #endif // CONFIG_RF_RATIO_2M
+//         vTaskDelay(1000 / portTICK_PERIOD_MS); //to prevent multiple presses
+//         xTaskCreate(button_press_task, "button_press_task", 2048, NULL, 10, NULL);
 
-// #if CONFIG_RF_RATIO_250K
-// 	ESP_LOGW(pcTaskGetName(0), "Set RF Data Ratio to 250KBps");
-// 	Nrf24_SetSpeedDataRates(dev, 2);
-// #endif // CONFIG_RF_RATIO_2M
 
-// 	ESP_LOGW(pcTaskGetName(0), "CONFIG_RETRANSMIT_DELAY=%d", CONFIG_RETRANSMIT_DELAY);
-// 	Nrf24_setRetransmitDelay(dev, CONFIG_RETRANSMIT_DELAY);
+//         // count++;
+//         // post_rest_button(); //trigger the server to capture the image
+//         // //check if new array is available
+//         // //retrieve the new array
+//         // //put it inside the minimax function
+//         // //send the value via nrfs
+
+//         }
+//     }
 // }
-// #endif // CONFIG_ADVANCED
-
-// #if CONFIG_RECEIVER
-void receiver(void *pvParameters)
-{
-    ESP_LOGI(pcTaskGetName(0), "Start");
-    NRF24_t dev;
-    Nrf24_init(&dev);
-    uint8_t payload = 32;
-    uint8_t channel = (uint8_t)115;
-    Nrf24_config(&dev, channel, payload);
-
-    // Set own address using 5 characters
-    esp_err_t ret = Nrf24_setRADDR(&dev, (uint8_t *)"FGHIJ");
-    if (ret != ESP_OK)
-    {
-        ESP_LOGE(pcTaskGetName(0), "nrf24l01 not installed");
-        while (1)
-        {
-            vTaskDelay(1);
-        }
-    }
-
-#if CONFIG_ADVANCED
-    AdvancedSettings(&dev);
-#endif // CONFIG_ADVANCED
-
-    // Print settings
-    Nrf24_printDetails(&dev);
-    ESP_LOGI(pcTaskGetName(0), "Listening...");
-
-    uint8_t buf[32];
-
-    // Clear RX FiFo
-    while (1)
-    {
-        if (Nrf24_dataReady(&dev) == false)
-            break;
-        Nrf24_getData(&dev, buf);
-    }
-
-    while (1)
-    {
-        // When the program is received, the received data is output from the serial port
-        if (Nrf24_dataReady(&dev))
-        {
-            Nrf24_getData(&dev, buf);
-            ESP_LOGI(pcTaskGetName(0), "Got data:%s", buf);
-            // ESP_LOG_BUFFER_HEXDUMP(pcTaskGetName(0), buf, payload, ESP_LOG_INFO);
-        }
-        vTaskDelay(1);
-    }
-}
-// #endif // CONFIG_RECEIVER
-
-// #if CONFIG_SENDER
-void sender(void *pvParameters)
-{
-    ESP_LOGI(pcTaskGetName(0), "Start");
-    NRF24_t dev;
-    Nrf24_init(&dev);
-    uint8_t payload = 32;
-    uint8_t channel = (uint8_t)100;
-    Nrf24_config(&dev, channel, payload);
-
-    // Set the receiver address using 5 characters
-    esp_err_t ret = Nrf24_setTADDR(&dev, (uint8_t *)"FGIJ");
-    if (ret != ESP_OK)
-    {
-        ESP_LOGE(pcTaskGetName(0), "nrf24l01 not installed");
-        while (1)
-        {
-            vTaskDelay(1);
-        }
-    }
-
-#if CONFIG_ADVANCED
-    AdvancedSettings(&dev);
-#endif // CONFIG_ADVANCED
-
-    // Print settings
-    Nrf24_printDetails(&dev);
-
-    uint8_t buf[32];
-    while (1)
-    {
-        TickType_t nowTick = xTaskGetTickCount();
-        sprintf((char *)buf, "Hello World %" PRIu32, nowTick);
-        Nrf24_send(&dev, buf);
-        vTaskDelay(1);
-        ESP_LOGI(pcTaskGetName(0), "Wait for sending.....");
-        if (Nrf24_isSend(&dev, 1000))
-        {
-            ESP_LOGI(pcTaskGetName(0), "Send success:%s", buf);
-        }
-        else
-        {
-            ESP_LOGW(pcTaskGetName(0), "Send fail:");
-        }
-        vTaskDelay(4000 / portTICK_PERIOD_MS);
-    }
-}
-// #endif // CONFIG_SENDER
-
-void app_main(void)
-{
-    // #if CONFIG_RECEIVER
-    	// xTaskCreate(&receiver, "RECEIVER", 1024*3, NULL, 2, NULL);
-    // #endif
-
-    // #if CONFIG_SENDER
-    xTaskCreate(&sender, "SENDER", 1024 * 3, NULL, 2, NULL);
-    // #endif
-}
