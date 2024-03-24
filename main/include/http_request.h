@@ -3,8 +3,6 @@
 
 #include "esp_http_client.h"
 
-
-
 // Defines the size of the game state array
 // #define GAME_SIZE 9
 
@@ -34,7 +32,7 @@ void get_rest_array(void);
  *
  * @return char* Pointer to the game state array.
  */
-char* get_game_state(void);
+char *get_game_state(void);
 
 /**
  * @brief HTTP event handler for processing POST requests' responses.

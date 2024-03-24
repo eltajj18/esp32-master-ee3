@@ -1,14 +1,11 @@
 // https://github.com/nopnop2002/esp-idf-mirf/tree/master
 
 #include <string.h>
-
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
-
 #include <driver/spi_master.h>
 #include <driver/gpio.h>
 #include "esp_log.h"
-
 #include "include/mirf.h"
 
 #define TAG "NRF24"
@@ -17,15 +14,11 @@
 // #if CONFIG_SPI2_HOST
 // #define HOST_ID SPI2_HOST
 // #elif CONFIG_SPI3_HOST
-#define HOST_ID SPI3_HOST
+
 // #endif
 
 static const int SPI_Frequency = 4000000; // Stable even with a long jumper cable
-#define CONFIG_MISO_GPIO GPIO_NUM_37
-#define CONFIG_MOSI_GPIO GPIO_NUM_35
-#define CONFIG_SCLK_GPIO GPIO_NUM_36
-#define CONFIG_CE_GPIO GPIO_NUM_38
-#define CONFIG_CSN_GPIO GPIO_NUM_40
+
 // static const int SPI_Frequency = 6000000;
 // static const int SPI_Frequency = 8000000; // Requires a short jumper cable
 // static const int SPI_Frequency = 10000000; // Unstable even with a short jumper cable
@@ -83,6 +76,60 @@ void Nrf24_init(NRF24_t *dev)
 
     dev->cePin = CONFIG_CE_GPIO;
     dev->csnPin = CONFIG_CSN_GPIO;
+    dev->channel = 1;
+    dev->payload = 16;
+    dev->_SPIHandle = handle;
+}
+
+void Nrf24_init_2(NRF24_t *dev)
+{
+    esp_err_t ret;
+
+    ESP_LOGI(TAG, "CONFIG_MISO_GPIO=%d", CONFIG_MISO_GPIO_2);
+    ESP_LOGI(TAG, "CONFIG_MOSI_GPIO=%d", CONFIG_MOSI_GPIO_2);
+    ESP_LOGI(TAG, "CONFIG_SCLK_GPIO=%d", CONFIG_SCLK_GPIO_2);
+    ESP_LOGI(TAG, "CONFIG_CE_GPIO=%d", CONFIG_CE_GPIO_2);
+    ESP_LOGI(TAG, "CONFIG_CSN_GPIO=%d", CONFIG_CSN_GPIO_2);
+
+    // gpio_pad_select_gpio(CONFIG_CE_GPIO);
+    gpio_reset_pin(CONFIG_CE_GPIO_2);
+    gpio_set_direction(CONFIG_CE_GPIO_2, GPIO_MODE_OUTPUT);
+    gpio_set_level(CONFIG_CE_GPIO_2, 0);
+
+    // gpio_pad_select_gpio(CONFIG_CSN_GPIO);
+    gpio_reset_pin(CONFIG_CSN_GPIO_2);
+    gpio_set_direction(CONFIG_CSN_GPIO_2, GPIO_MODE_OUTPUT);
+    gpio_set_level(CONFIG_CSN_GPIO_2, 1);
+
+    spi_bus_config_t spi_bus_config = {
+        .sclk_io_num = CONFIG_SCLK_GPIO_2,
+        .mosi_io_num = CONFIG_MOSI_GPIO_2,
+        .miso_io_num = CONFIG_MISO_GPIO_2,
+        .quadwp_io_num = -1,
+        .quadhd_io_num = -1};
+
+    ret = spi_bus_initialize(HOST_ID_2, &spi_bus_config, SPI_DMA_CH_AUTO);
+    ESP_LOGI(TAG, "spi_bus_initialize=%d", ret);
+    assert(ret == ESP_OK);
+
+    spi_device_interface_config_t devcfg;
+    memset(&devcfg, 0, sizeof(spi_device_interface_config_t));
+    devcfg.clock_speed_hz = SPI_Frequency;
+    // It does not work with hardware CS control.
+    // devcfg.spics_io_num = csn_pin;
+    // It does work with software CS control.
+    devcfg.spics_io_num = -1;
+    devcfg.queue_size = 7;
+    devcfg.mode = 0;
+    devcfg.flags = SPI_DEVICE_NO_DUMMY;
+
+    spi_device_handle_t handle;
+    ret = spi_bus_add_device(HOST_ID_2, &devcfg, &handle);
+    ESP_LOGI(TAG, "spi_bus_add_device=%d", ret);
+    assert(ret == ESP_OK);
+
+    dev->cePin = CONFIG_CE_GPIO_2;
+    dev->csnPin = CONFIG_CSN_GPIO_2;
     dev->channel = 1;
     dev->payload = 16;
     dev->_SPIHandle = handle;
@@ -305,6 +352,7 @@ void Nrf24_send(NRF24_t *dev, uint8_t *value)
     status = Nrf24_getStatus(dev);
     while (dev->PTX) // Wait until last paket is send
     {
+        vTaskDelay(20 / portTICK_PERIOD_MS);
         status = Nrf24_getStatus(dev);
         if ((status & ((1 << TX_DS) | (1 << MAX_RT))))
         {
@@ -353,6 +401,7 @@ bool Nrf24_isSend(NRF24_t *dev, int timeout)
     {
         while (1)
         {
+            vTaskDelay(20 / portTICK_PERIOD_MS);
             status = Nrf24_getStatus(dev);
             /*
                 if sending successful (TX_DS) or max retries exceded (MAX_RT).
@@ -531,6 +580,8 @@ void Nrf24_print_address_register(NRF24_t *dev, const char *name, uint8_t reg, u
     printf("%s\t =", name);
     while (qty--)
     {
+        vTaskDelay(20 / portTICK_PERIOD_MS);
+
         // uint8_t buffer[addr_width];
         uint8_t buffer[5];
         Nrf24_readRegister(dev, reg++, buffer, sizeof(buffer));
@@ -555,6 +606,8 @@ void Nrf24_print_byte_register(NRF24_t *dev, const char *name, uint8_t reg, uint
     printf("%s\t =", name);
     while (qty--)
     {
+        vTaskDelay(20 / portTICK_PERIOD_MS);
+
         uint8_t buffer[1];
         Nrf24_readRegister(dev, reg++, buffer, 1);
         printf(" 0x%02x", buffer[0]);

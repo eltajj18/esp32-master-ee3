@@ -144,7 +144,6 @@ int minimax(char board[3][3], int depth, bool isMax)
     }
 }
 
-
 // Function to find the best move for the computer
 Move findBestMove(char board[3][3])
 {
@@ -200,10 +199,12 @@ Move findBestMove(char board[3][3])
 //     return 0;
 // }
 
-void transformArrayTo3x3(char* gamestate ,char board[3][3]) {
-   for (int i = 0; i < 9; ++i) {
+void transformArrayTo3x3(char *gamestate, char board[3][3])
+{
+    for (int i = 0; i < 9; ++i)
+    {
         // Convert the string to a char and assign to the correct position in the board
         // Note: Since each string is known to be a single character, we directly access it with [0]
         board[i / 3][i % 3] = gamestate[i]; // Dividing and modulo by 3 maps the index to 2D coordinates
     }
-    }
+}

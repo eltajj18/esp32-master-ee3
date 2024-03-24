@@ -12,7 +12,6 @@
 #include "cJSON.h"
 #include "include/http_request.h"
 
-
 char game_state[9];
 
 int retry_num = 0;
@@ -123,7 +122,7 @@ void get_rest_array()
     esp_http_client_cleanup(client);
 }
 
-char* get_game_state()
+char *get_game_state()
 {
     return game_state;
 }
@@ -187,7 +186,8 @@ esp_err_t http_event_handler(esp_http_client_event_t *evt)
     }
     return ESP_OK;
 }
-bool poll_if_ready() {
+bool poll_if_ready()
+{
     esp_http_client_config_t config = {
         .url = SERVER_URL_ARRAY_READY,
         .event_handler = http_event_handler,
@@ -197,27 +197,33 @@ bool poll_if_ready() {
     int retry = 0;
     const int retry_limit = 10; // Adjust as necessary
     bool result = false;
+    vTaskDelay(pdMS_TO_TICKS(200));
 
-    while (!is_array_ready) {
+    while (!is_array_ready)
+    {
         printf("Retry %d\n", retry);
         esp_http_client_handle_t client = esp_http_client_init(&config);
-        
+        vTaskDelay(pdMS_TO_TICKS(200));
         // Reset the readiness state before each request
         is_array_ready = false;
 
         esp_err_t err = esp_http_client_perform(client);
-        if (err == ESP_OK) {
+        if (err == ESP_OK)
+        {
             // The event handler will process the response and update is_array_ready
             // Wait a short time for the response to be processed
             vTaskDelay(pdMS_TO_TICKS(2000)); // 2 seconds delay between retries
-        } else {
+        }
+        else
+        {
             ESP_LOGE("HTTP_POLL", "HTTP Request failed: %s", esp_err_to_name(err));
         }
 
         esp_http_client_cleanup(client);
 
         // Check if the array became ready during this iteration
-        if (is_array_ready) {
+        if (is_array_ready)
+        {
             result = true;
             break; // Exit the loop if the array is ready
         }
@@ -228,7 +234,6 @@ bool poll_if_ready() {
     return result; // Returns true if the array is ready, false otherwise (including on max retries)
 }
 
-
 // void app_main(void)
 // {
 //     nvs_flash_init();
@@ -236,6 +241,9 @@ bool poll_if_ready() {
 
 //     vTaskDelay(2000 / portTICK_PERIOD_MS);
 //     printf("WIFI was initiated ...........\n\n");
-
-  
+//     while (1)
+//     {
+//         post_rest_button(); // Assume this sends a signal to the server to capture an image
+//         vTaskDelay(5000 / portTICK_PERIOD_MS);
+//     }
 // }
