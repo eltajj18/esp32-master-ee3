@@ -16,6 +16,8 @@ char game_state[9];
 
 int retry_num = 0;
 
+bool is_array_ready = false;
+
 static void wifi_event_handler(void *event_handler_arg, esp_event_base_t event_base, int32_t event_id, void *event_data)
 {
     if (event_id == WIFI_EVENT_STA_START)
@@ -71,6 +73,14 @@ void wifi_connection()
     esp_wifi_connect();
     printf("wifi_init_softap finished. SSID:%s  password:%s", SSID, PASSWORD);
 }
+// void drawsa()
+// {
+//     printf(" %c | %c | %c\n", (game_state[0]), (game_state[1]), (game_state[2]));
+//     printf("---+---+---\n");
+//     printf(" %c | %c | %c\n", (game_state[3]), (game_state[4]), (game_state[5]));
+//     printf("---+---+---\n");
+//     printf(" %c | %c | %c\n", (game_state[6]), (game_state[7]), (game_state[8]));
+// }
 esp_err_t client_event_get_handler(esp_http_client_event_handle_t evt)
 {
     switch (evt->event_id)
@@ -159,7 +169,7 @@ void post_rest_button()
     esp_http_client_cleanup(client);
 }
 
-static bool is_array_ready = false;
+
 
 esp_err_t http_event_handler(esp_http_client_event_t *evt)
 {
@@ -187,15 +197,18 @@ esp_err_t http_event_handler(esp_http_client_event_t *evt)
     return ESP_OK;
 }
 bool poll_if_ready()
-{
+{ 
+    is_array_ready=false;
     esp_http_client_config_t config = {
         .url = SERVER_URL_ARRAY_READY,
         .event_handler = http_event_handler,
+        .method = HTTP_METHOD_GET,
+        .cert_pem = NULL,
         // Add additional configuration as necessary
     };
 
     int retry = 0;
-    const int retry_limit = 10; // Adjust as necessary
+    // const int retry_limit = 10; // Adjust as necessary
     bool result = false;
     vTaskDelay(pdMS_TO_TICKS(200));
 

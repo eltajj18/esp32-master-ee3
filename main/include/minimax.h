@@ -14,6 +14,7 @@ bool isMovesLeft(char board[3][3]);
 int minimax(char board[3][3], int depth, bool isMax);
 Move findBestMove(char board[3][3]);
 void transformArrayTo3x3(char* gamestate, char board[3][3]);
-void draw(char b[9]);
+void draw(char b[3][3]);
+bool isBoardEmpty(char board[3][3]);
 
 #endif // MINIMAX_H

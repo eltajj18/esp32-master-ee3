@@ -27,6 +27,7 @@
         "wifi_connection.h": "c",
         "stdbool.h": "c",
         "random": "c",
-        "cjson.h": "c"
+        "cjson.h": "c",
+        "esp_task_wdt.h": "c"
     }
 }

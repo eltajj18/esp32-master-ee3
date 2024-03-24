@@ -27,10 +27,12 @@ void evaluate_game(int evaluation)
     if (evaluation == 10)
     {
         computer_score++;
+        printf("Computer wins\n");
     }
     else if (evaluation == -10)
     {
         player_score++;
+        printf("Player wins\n");
     }
     else
     {
@@ -40,68 +42,71 @@ void evaluate_game(int evaluation)
 }
 
 void button_press_task(void *pvParameter)
-// void button_press_task()
 {
-    // Ensure we don't react to any button presses until ready
     if (is_processing)
     {
-        vTaskDelete(NULL); // Safely exit this task if it's somehow started while processing
-        return;
+        goto exit;
     }
 
     is_processing = true;
 
-    char *game_state;
     printf("Button pressed\n");
-    post_rest_button(); // Assume this sends a signal to the server to capture an image
+    post_rest_button(); // Sends a signal to the server to capture an image
 
-    // Start polling for the new array after the initial post request
-    // This function should contain logic that waits for the new game state to be ready
-    // and retrieves it. Once done, is_processing can be set to false to allow new button presses.
-
-    // vTaskDelay(3000 / portTICK_PERIOD_MS);
-    if (poll_if_ready())
+    if (!poll_if_ready())
     {
+        printf("Failed to go further\n");
+        goto cleanup; // Jump to cleanup if polling is not ready
+    }
+    get_rest_array();
 
-        get_rest_array();
-        game_state = get_game_state();
+    // Only proceed if polling is successful
+    char *game_state = get_game_state();
+    // printf("Game state: %c %c %c %c %c %c %c %c %c \n", game_state[0], game_state[1], game_state[2], game_state[3], game_state[4], game_state[5], game_state[6], game_state[7], game_state[8]);
+    char board[3][3] = {};
+    transformArrayTo3x3(game_state, board);
+    // drawsa();
+    draw(board);
 
-        char board[3][3] = {};
-        transformArrayTo3x3(game_state, board);
-        draw(board);
-
-        int evaluation;
-        Move bestMove;
-
-        if (!isMovesLeft(board))
-        {
-            evaluation = evaluate(board);
-            evaluate_game(evaluation);
-            printf("The score is: %d\n", evaluation);
-            /*Send the score through NRF24*/
-            // sender_score(dev_score,player_score, computer_score);
-            //  is_processing = false;
-        }
-        else
-        {
-            bestMove = findBestMove(board);
-            printf("The best move is: %d %d\n", bestMove.row, bestMove.col);
-            /*send the best move through NRF24*/
-            // sender_best_move(dev_best_move,bestMove.row, bestMove.col);
-            //  is_processing = false;
-        }
-        // Ready for a new button press now
-        is_processing = false;
-        vTaskDelete(NULL); // Task completed, clean up
+    vTaskDelay(200 / portTICK_PERIOD_MS);
+    if (!isMovesLeft(board))
+    {
+        int evaluation = evaluate(board);
+        evaluate_game(evaluation);
+        printf("The score is: %d\n", evaluation);
+        // sender_score(dev_score, player_score, computer_score);
     }
     else
     {
-        printf("Failed to go further");
+        if (evaluate(board) == 0)
+        {
+            /*Check if there is no winnner*/
+            Move bestMove = findBestMove(board);
+            printf("The best move is: %d %d\n", bestMove.row, bestMove.col);
+            // sender_best_move(dev_best_move, bestMove.row, bestMove.col);
+        }
+        else
+        {
+            /*if there is then give the score*/
+            int evaluation = evaluate(board);
+            evaluate_game(evaluation);
+            printf("The score is: %d\n", evaluation);
+        }
     }
+
+cleanup:
+    // Clean up and prepare for the next button press
+    printf("Getting ready for a new button press\n\n");
+    is_processing = false;
+
+exit:
+    // Explicitly delete this task to free up resources
+    vTaskDelete(NULL);
 }
 
 void app_main(void)
 {
+    printf("Entered to app_main\n");
     nvs_flash_init();
     wifi_connection();
     vTaskDelay(2000 / portTICK_PERIOD_MS);
@@ -113,8 +118,6 @@ void app_main(void)
     /* Enable Pullup for Input Pin */
     gpio_pullup_en(BUTTON_GPIO);
 
-
-
     /*Configure Nrf24 that is responsible for sending best move coordinations*/
     // Nrf_bestMove_config(dev_best_move);
     /*Configure Nrf24 that is responsible for sending score*/
@@ -122,7 +125,7 @@ void app_main(void)
 
     while (1)
     {
-        // vTaskDelay(1000 / portTICK_PERIOD_MS);
+        vTaskDelay(20 / portTICK_PERIOD_MS);
         if (gpio_get_level(BUTTON_GPIO) == 0 && !is_processing)
         {
 
