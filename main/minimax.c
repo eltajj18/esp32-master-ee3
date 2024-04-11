@@ -217,3 +217,73 @@ void transformArrayTo3x3(char *gamestate, char board[3][3])
         board[i / 3][i % 3] = gamestate[i]; // Dividing and modulo by 3 maps the index to 2D coordinates
     }
 }
+
+// Function to find a random empty move
+Move findRandomEmptyMove(char board[3][3])
+{
+    Move move;
+    int emptyPositions = 0;
+    int chosenPosition;
+    int count = 0;
+
+    // First, count the number of empty positions
+    for (int i = 0; i < 3; i++)
+    {
+        for (int j = 0; j < 3; j++)
+        {
+            if (board[i][j] == ' ')
+            {
+                emptyPositions++;
+            }
+        }
+    }
+
+    if (emptyPositions > 0)
+    {
+        // Choose a random empty position
+        chosenPosition = rand() % emptyPositions;
+
+        // Find the chosen empty position
+        for (int i = 0; i < 3 && count <= chosenPosition; i++)
+        {
+            for (int j = 0; j < 3 && count <= chosenPosition; j++)
+            {
+                if (board[i][j] == ' ')
+                {
+                    if (count == chosenPosition)
+                    {
+                        move.row = i;
+                        move.col = j;
+                        return move;
+                    }
+                    count++;
+                }
+            }
+        }
+    }
+
+    // In case the board is full, return an invalid move
+    move.row = -1;
+    move.col = -1;
+    return move;
+}
+
+// Medium difficulty function
+Move medium(char board[3][3])
+{
+    // Seed the random number generator
+    // Note: Normally, you'd call srand(time(NULL)) once at the start of your program
+    srand(time(NULL)); // Call this once in the main function or initialization code instead
+
+    Move move;
+    if (rand() % 2)
+    {
+        printf("Computer chose the best move\n"); // Generates 0 or 1 randomly
+        move = findBestMove(board);               // Use the best move
+    }
+    else
+    {   printf("Computer chose a random move\n");
+        move = findRandomEmptyMove(board); // Make a random move
+    }
+    return move;
+}

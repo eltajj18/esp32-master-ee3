@@ -16,5 +16,7 @@ Move findBestMove(char board[3][3]);
 void transformArrayTo3x3(char* gamestate, char board[3][3]);
 void draw(char b[3][3]);
 bool isBoardEmpty(char board[3][3]);
+Move findRandomEmptyMove(char board[3][3]);
+Move medium(char board[3][3]);
 
 #endif // MINIMAX_H

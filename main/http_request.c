@@ -73,14 +73,7 @@ void wifi_connection()
     esp_wifi_connect();
     printf("wifi_init_softap finished. SSID:%s  password:%s", SSID, PASSWORD);
 }
-// void drawsa()
-// {
-//     printf(" %c | %c | %c\n", (game_state[0]), (game_state[1]), (game_state[2]));
-//     printf("---+---+---\n");
-//     printf(" %c | %c | %c\n", (game_state[3]), (game_state[4]), (game_state[5]));
-//     printf("---+---+---\n");
-//     printf(" %c | %c | %c\n", (game_state[6]), (game_state[7]), (game_state[8]));
-// }
+
 esp_err_t client_event_get_handler(esp_http_client_event_handle_t evt)
 {
     switch (evt->event_id)
@@ -204,7 +197,6 @@ bool poll_if_ready()
         .event_handler = http_event_handler,
         .method = HTTP_METHOD_GET,
         .cert_pem = NULL,
-        // Add additional configuration as necessary
     };
 
     int retry = 0;
@@ -247,16 +239,16 @@ bool poll_if_ready()
     return result; // Returns true if the array is ready, false otherwise (including on max retries)
 }
 
-void app_main(void)
-{
-    nvs_flash_init();
-    wifi_connection();
+// void app_main(void)
+// {
+//     nvs_flash_init();
+//     wifi_connection();
 
-    vTaskDelay(2000 / portTICK_PERIOD_MS);
-    printf("WIFI was initiated ...........\n\n");
-    while (1)
-    {
-        post_rest_button(); // Assume this sends a signal to the server to capture an image
-        vTaskDelay(5000 / portTICK_PERIOD_MS);
-    }
-}
+//     vTaskDelay(2000 / portTICK_PERIOD_MS);
+//     printf("WIFI was initiated ...........\n\n");
+//     while (1)
+//     {
+//         post_rest_button(); // Assume this sends a signal to the server to capture an image
+//         vTaskDelay(5000 / portTICK_PERIOD_MS);
+//     }
+// }
