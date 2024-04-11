@@ -247,16 +247,16 @@ bool poll_if_ready()
     return result; // Returns true if the array is ready, false otherwise (including on max retries)
 }
 
-// void app_main(void)
-// {
-//     nvs_flash_init();
-//     wifi_connection();
+void app_main(void)
+{
+    nvs_flash_init();
+    wifi_connection();
 
-//     vTaskDelay(2000 / portTICK_PERIOD_MS);
-//     printf("WIFI was initiated ...........\n\n");
-//     while (1)
-//     {
-//         post_rest_button(); // Assume this sends a signal to the server to capture an image
-//         vTaskDelay(5000 / portTICK_PERIOD_MS);
-//     }
-// }
+    vTaskDelay(2000 / portTICK_PERIOD_MS);
+    printf("WIFI was initiated ...........\n\n");
+    while (1)
+    {
+        post_rest_button(); // Assume this sends a signal to the server to capture an image
+        vTaskDelay(5000 / portTICK_PERIOD_MS);
+    }
+}

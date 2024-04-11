@@ -91,6 +91,7 @@ void button_press_task(void *pvParameter)
             int evaluation = evaluate(board);
             evaluate_game(evaluation);
             printf("The score is: %d\n", evaluation);
+            // sender_score(dev_score, player_score, computer_score);
         }
     }
 
@@ -104,34 +105,35 @@ exit:
     vTaskDelete(NULL);
 }
 
-void app_main(void)
-{
-    printf("Entered to app_main\n");
-    nvs_flash_init();
-    wifi_connection();
-    vTaskDelay(2000 / portTICK_PERIOD_MS);
-    printf("WIFI was initiated ...........\n\n");
-    /* Reset the pin */
-    gpio_reset_pin(BUTTON_GPIO);
-    /* Set the GPIOs to Output mode */
-    gpio_set_direction(BUTTON_GPIO, GPIO_MODE_INPUT);
-    /* Enable Pullup for Input Pin */
-    gpio_pullup_en(BUTTON_GPIO);
+// void app_main(void)
+// {
+//     printf("Entered to app_main\n");
+//     nvs_flash_init();
+//     wifi_connection();
+//     vTaskDelay(2000 / portTICK_PERIOD_MS);
+//     printf("WIFI was initiated ...........\n\n");
+//     /* Reset the pin */
+//     gpio_reset_pin(BUTTON_GPIO);
+//     /* Set the GPIOs to Output mode */
+//     gpio_set_direction(BUTTON_GPIO, GPIO_MODE_INPUT);
+//     /* Enable Pullup for Input Pin */
+//     gpio_pullup_en(BUTTON_GPIO);
 
-    /*Configure Nrf24 that is responsible for sending best move coordinations*/
-    // Nrf_bestMove_config(dev_best_move);
-    /*Configure Nrf24 that is responsible for sending score*/
-    // Nrf_score_config(dev_score);
+//     /*Configure Nrf24 that is responsible for sending best move coordinations*/
+//     // Nrf_bestMove_config(dev_best_move);
+//     /*Configure Nrf24 that is responsible for sending score*/
+//     // Nrf_score_config(dev_score);
 
-    while (1)
-    {
-        vTaskDelay(20 / portTICK_PERIOD_MS);
-        if (gpio_get_level(BUTTON_GPIO) == 0 && !is_processing)
-        {
+//     while (1)
+//     {
+//         vTaskDelay(20 / portTICK_PERIOD_MS);
+//         if (gpio_get_level(BUTTON_GPIO) == 0 && !is_processing)
+//         {
 
-            vTaskDelay(1000 / portTICK_PERIOD_MS); // to prevent multiple presses
-            xTaskCreate(button_press_task, "button_press_task", 10000, NULL, 10, NULL);
-            // button_press_task();
-        }
-    }
-}
+//             vTaskDelay(1000 / portTICK_PERIOD_MS); // to prevent multiple presses
+//             xTaskCreate(button_press_task, "button_press_task", 10000, NULL, 10, NULL);
+//             // button_press_task();
+//         }
+//     }
+//     // 1) ADD RETRIES IF THE HTTP POST OR GET FAILS TO ALL FUNCTIONS
+// }

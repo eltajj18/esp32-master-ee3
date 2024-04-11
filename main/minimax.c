@@ -4,8 +4,8 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
-#define PLAYER 'X'
-#define COMPUTER 'O'
+#define PLAYER 'O'
+#define COMPUTER 'X'
 
 // Function to evaluate the score of the board
 void draw(char b[3][3])

@@ -94,53 +94,57 @@
 // }
 // // #endif // CONFIG_RECEIVER
 
-// // #if CONFIG_SENDER
-// void sender(void *pvParameters)
-// {
-//     ESP_LOGI(pcTaskGetName(0), "Start");
-//     NRF24_t dev;
-//     Nrf24_init(&dev);
-//     uint8_t payload = 32;
-//     uint8_t channel = (uint8_t)115;
-//     Nrf24_config(&dev, channel, payload);
+// #if CONFIG_SENDER
+void sender(void *pvParameters)
+{
+    ESP_LOGI(pcTaskGetName(0), "Start");
+    NRF24_t dev;
+    Nrf24_init(&dev);
+    uint8_t payload = 2;
+    uint8_t channel = (uint8_t)110;
+    Nrf24_config(&dev, channel, payload);
+    Nrf24_SetSpeedDataRates(&dev, 0);
+    // Set the receiver address using 5 characters
+    // uint8_t * pipe= {0xAA, 0xBB, 0xCC, 0xDD, 0xEE};
 
-//     // Set the receiver address using 5 characters
-//     esp_err_t ret = Nrf24_setTADDR(&dev, (uint8_t *)"FGIJ");
-//     if (ret != ESP_OK)
-//     {
-//         ESP_LOGE(pcTaskGetName(0), "nrf24l01 not installed");
-//         while (1)
-//         {
-//             vTaskDelay(1);
-//         }
-//     }
+    esp_err_t ret = Nrf24_setTADDR(&dev, (uint8_t *)"FGHIJ");
+    // esp_err_t ret = Nrf24_setTADDR(&dev, pipe);
 
-// #if CONFIG_ADVANCED
-//     AdvancedSettings(&dev);
-// #endif // CONFIG_ADVANCED
+    if (ret != ESP_OK)
+    {
+        ESP_LOGE(pcTaskGetName(0), "nrf24l01 not installed");
+        while (1)
+        {
+            vTaskDelay(1);
+        }
+    }
 
-//     // Print settings
-//     Nrf24_printDetails(&dev);
+#if CONFIG_ADVANCED
+    AdvancedSettings(&dev);
+#endif // CONFIG_ADVANCED
 
-//     uint8_t buf[32];
-//     while (1)
-//     {
-//         TickType_t nowTick = xTaskGetTickCount();
-//         sprintf((char *)buf, "Hello World %" PRIu32, nowTick);
-//         Nrf24_send(&dev, buf);
-//         vTaskDelay(1);
-//         ESP_LOGI(pcTaskGetName(0), "Wait for sending.....");
-//         if (Nrf24_isSend(&dev, 1000))
-//         {
-//             ESP_LOGI(pcTaskGetName(0), "Send success:%s", buf);
-//         }
-//         else
-//         {
-//             ESP_LOGW(pcTaskGetName(0), "Send fail:");
-//         }
-//         vTaskDelay(4000 / portTICK_PERIOD_MS);
-//     }
-// }
+    // Print settings
+    Nrf24_printDetails(&dev);
+
+    uint8_t buf[2];
+    while (1)
+    {
+        TickType_t nowTick = xTaskGetTickCount();
+        sprintf((char *)buf, "A");
+        Nrf24_send(&dev, buf);
+        vTaskDelay(1);
+        ESP_LOGI(pcTaskGetName(0), "Wait for sending.....");
+        if (Nrf24_isSend(&dev, 1000))
+        {
+            ESP_LOGI(pcTaskGetName(0), "Send success:%s", buf);
+        }
+        else
+        {
+            ESP_LOGW(pcTaskGetName(0), "Send fail:");
+        }
+        vTaskDelay(4000 / portTICK_PERIOD_MS);
+    }
+}
 
 void sender_best_move(NRF24_t *dev, int row_coordination, int column_coordination)
 {
@@ -261,7 +265,7 @@ void sender_score(NRF24_t *dev, uint8_t player_score, uint8_t computer_score)
 // void app_main(void)
 // {
 //     // #if CONFIG_RECEIVER
-//     	// xTaskCreate(&receiver, "RECEIVER", 1024*3, NULL, 2, NULL);
+//     // xTaskCreate(&receiver, "RECEIVER", 1024*3, NULL, 2, NULL);
 //     // #endif
 
 //     // #if CONFIG_SENDER
