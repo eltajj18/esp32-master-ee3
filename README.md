@@ -37,3 +37,4 @@ They are not used or needed when building with CMake and idf.py.
 ## Resources
 
 https://www.geeksforgeeks.org/finding-optimal-move-in-tic-tac-toe-using-minimax-algorithm-in-game-theory/
+https://github.com/nopnop2002/esp-idf-mirf

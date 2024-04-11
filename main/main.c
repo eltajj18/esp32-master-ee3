@@ -136,5 +136,6 @@ void app_main(void)
         }
     }
     // 1) ADD RETRIES IF THE HTTP POST OR GET FAILS TO ALL FUNCTIONS 
-
+    //2)POST REST BUTTON retry posting with delay 0.5sec inbetween unlimited retries
+    //3)GET REST ARRAY retry posting with delay 0.5sec inbetween unlimited retries
 }
