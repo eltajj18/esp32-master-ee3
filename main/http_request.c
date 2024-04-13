@@ -119,10 +119,23 @@ void get_rest_array()
         .method = HTTP_METHOD_GET,
         .cert_pem = NULL,
         .event_handler = client_event_get_handler};
-
-    esp_http_client_handle_t client = esp_http_client_init(&config_get);
-    esp_http_client_perform(client);
-    esp_http_client_cleanup(client);
+    while (true)
+    {
+        esp_http_client_handle_t client = esp_http_client_init(&config_get);
+        esp_err_t err = esp_http_client_perform(client);
+        if (err == ESP_OK)
+        {
+            printf("GET request successfully received and processed.\n");
+            esp_http_client_cleanup(client);
+            break; // Exit the loop on successful GET
+        }
+        else
+        {
+            ESP_LOGE("HTTP_GET", "HTTP GET failed: %s", esp_err_to_name(err));
+            esp_http_client_cleanup(client);
+            vTaskDelay(pdMS_TO_TICKS(500)); // Delay 0.5 second before retrying
+        }
+    }
 }
 
 char *get_game_state()
@@ -151,18 +164,29 @@ void post_rest_button()
         .method = HTTP_METHOD_POST,
         .cert_pem = NULL,
         .event_handler = client_event_post_handler};
+    while (true)
+    {
+        esp_http_client_handle_t client = esp_http_client_init(&config_post);
 
-    esp_http_client_handle_t client = esp_http_client_init(&config_post);
+        const char *post_data = "{\"action\": \"capture\"}";
+        esp_http_client_set_post_field(client, post_data, strlen(post_data));
+        esp_http_client_set_header(client, "Content-Type", "application/json");
 
-    const char *post_data = "{\"action\": \"capture\"}";
-    esp_http_client_set_post_field(client, post_data, strlen(post_data));
-    esp_http_client_set_header(client, "Content-Type", "application/json");
-
-    esp_http_client_perform(client);
-    esp_http_client_cleanup(client);
+        esp_err_t err = esp_http_client_perform(client);
+        if (err == ESP_OK)
+        {
+            printf("POST request successfully sent.\n");
+            esp_http_client_cleanup(client);
+            break; // Exit the loop on successful POST
+        }
+        else
+        {
+            ESP_LOGE("HTTP_POST", "HTTP POST failed: %s", esp_err_to_name(err));
+            esp_http_client_cleanup(client);
+            vTaskDelay(pdMS_TO_TICKS(500)); // Delay 0.5 second before retrying
+        }
+    }
 }
-
-
 
 esp_err_t http_event_handler(esp_http_client_event_t *evt)
 {
@@ -190,8 +214,8 @@ esp_err_t http_event_handler(esp_http_client_event_t *evt)
     return ESP_OK;
 }
 bool poll_if_ready()
-{ 
-    is_array_ready=false;
+{
+    is_array_ready = false;
     esp_http_client_config_t config = {
         .url = SERVER_URL_ARRAY_READY,
         .event_handler = http_event_handler,

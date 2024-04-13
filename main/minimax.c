@@ -3,6 +3,8 @@
 #include "include/minimax.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include <stdlib.h> // For srand()
+#include <time.h>   // For time()
 
 #define PLAYER 'O'
 #define COMPUTER 'X'
