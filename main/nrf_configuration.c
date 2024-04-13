@@ -18,83 +18,7 @@
 #include "include/mirf.h"
 #include "include/nrf_configuration.h"
 
-// #if CONFIG_ADVANCED
-// void AdvancedSettings(NRF24_t * dev)
-// {
-// #if CONFIG_RF_RATIO_2M
-// 	ESP_LOGW(pcTaskGetName(0), "Set RF Data Ratio to 2MBps");
-// 	Nrf24_SetSpeedDataRates(dev, 1);
-// #endif // CONFIG_RF_RATIO_2M
-
-// #if CONFIG_RF_RATIO_1M
-// 	ESP_LOGW(pcTaskGetName(0), "Set RF Data Ratio to 1MBps");
-// 	Nrf24_SetSpeedDataRates(dev, 0);
-// #endif // CONFIG_RF_RATIO_2M
-
-// #if CONFIG_RF_RATIO_250K
-// 	ESP_LOGW(pcTaskGetName(0), "Set RF Data Ratio to 250KBps");
-// 	Nrf24_SetSpeedDataRates(dev, 2);
-// #endif // CONFIG_RF_RATIO_2M
-
-// 	ESP_LOGW(pcTaskGetName(0), "CONFIG_RETRANSMIT_DELAY=%d", CONFIG_RETRANSMIT_DELAY);
-// 	Nrf24_setRetransmitDelay(dev, CONFIG_RETRANSMIT_DELAY);
-// }
-// #endif // CONFIG_ADVANCED
-
-// #if CONFIG_RECEIVER
-// void receiver(void *pvParameters)
-// {
-//     ESP_LOGI(pcTaskGetName(0), "Start");
-//     NRF24_t dev;
-//     Nrf24_init(&dev);
-//     uint8_t payload = 32;
-//     uint8_t channel = (uint8_t)115;
-//     Nrf24_config(&dev, channel, payload);
-
-//     // Set own address using 5 characters
-//     esp_err_t ret = Nrf24_setRADDR(&dev, (uint8_t *)"FGHIJ");
-//     if (ret != ESP_OK)
-//     {
-//         ESP_LOGE(pcTaskGetName(0), "nrf24l01 not installed");
-//         while (1)
-//         {
-//             vTaskDelay(1);
-//         }
-//     }
-
-// #if CONFIG_ADVANCED
-//     AdvancedSettings(&dev);
-// #endif // CONFIG_ADVANCED
-
-//     // Print settings
-//     Nrf24_printDetails(&dev);
-//     ESP_LOGI(pcTaskGetName(0), "Listening...");
-
-//     uint8_t buf[32];
-
-//     // Clear RX FiFo
-//     while (1)
-//     {
-//         if (Nrf24_dataReady(&dev) == false)
-//             break;
-//         Nrf24_getData(&dev, buf);
-//     }
-
-//     while (1)
-//     {
-//         // When the program is received, the received data is output from the serial port
-//         if (Nrf24_dataReady(&dev))
-//         {
-//             Nrf24_getData(&dev, buf);
-//             ESP_LOGI(pcTaskGetName(0), "Got data:%s", buf);
-//             // ESP_LOG_BUFFER_HEXDUMP(pcTaskGetName(0), buf, payload, ESP_LOG_INFO);
-//         }
-//         vTaskDelay(1);
-//     }
-// }
-// // #endif // CONFIG_RECEIVER
-
-// #if CONFIG_SENDER
+NRF24_t dev_medium_move;
 void sender(void *pvParameters)
 {
     ESP_LOGI(pcTaskGetName(0), "Start");
@@ -142,12 +66,135 @@ void sender(void *pvParameters)
         {
             ESP_LOGW(pcTaskGetName(0), "Send fail:");
         }
-        vTaskDelay(4000 / portTICK_PERIOD_MS);
+        vTaskDelay(3000 / portTICK_PERIOD_MS);
     }
 }
-
-void sender_best_move(NRF24_t *dev, int row_coordination, int column_coordination)
+NRF24_t sender_score(uint8_t player_score, uint8_t computer_score)
 {
+    ESP_LOGI(pcTaskGetName(0), "Start Sending Score");
+    NRF24_t dev;
+    Nrf24_init_2(&dev);
+    uint8_t payload = 1;
+    uint8_t channel = (uint8_t)115;
+    Nrf24_config(&dev, channel, payload);
+    Nrf24_SetSpeedDataRates(&dev, 0);
+    // Set the receiver address using 5 characters
+    // uint8_t * pipe= {0xAA, 0xBB, 0xCC, 0xDD, 0xEE};
+
+    esp_err_t ret = Nrf24_setTADDR(&dev, (uint8_t *)"ABCDE");
+    // esp_err_t ret = Nrf24_setTADDR(&dev, pipe);
+    player_score &= 0x0F; // Ensure scores are within range 0-15
+    computer_score &= 0x0F;
+    uint8_t combined_score = (player_score << 4) | computer_score;
+
+    if (ret != ESP_OK)
+    {
+        ESP_LOGE(pcTaskGetName(0), "nrf24l01 not installed");
+        while (1)
+        {
+            vTaskDelay(1);
+        }
+    }
+
+    // Print settings
+    Nrf24_printDetails(&dev);
+
+    int attempt = 0;
+    bool isSent = false;
+    while (attempt < MAX_RETRY_ATTEMPTS && !isSent)
+    {
+
+        ESP_LOGI(pcTaskGetName(0), "Attempt #%d to send score...", attempt + 1);
+        Nrf24_send(&dev, &combined_score);
+        vTaskDelay(1);
+        ESP_LOGI(pcTaskGetName(0), "Wait for sending.....");
+        if (Nrf24_isSend(&dev, 1000))
+        {
+            // Check if send was successful
+            ESP_LOGI(pcTaskGetName(0), "Send success. Combined score: %d", combined_score);
+            isSent = true;
+        }
+        else
+        {
+            ESP_LOGW(pcTaskGetName(0), "Send failed. Retrying...");
+            vTaskDelay(pdMS_TO_TICKS(1000)); // Wait before retrying
+        }
+        attempt++;
+    }
+    if (!isSent)
+    {
+        ESP_LOGE(pcTaskGetName(0), "Failed to send score after %d attempts.", MAX_RETRY_ATTEMPTS);
+    }
+    return dev;
+}
+
+NRF24_t sender_best_move(int row_coordination, int column_coordination)
+{
+    ESP_LOGI(pcTaskGetName(0), "Start");
+    NRF24_t dev;
+    Nrf24_init(&dev);
+    uint8_t payload = 1;
+    uint8_t channel = (uint8_t)115;
+    Nrf24_config(&dev, channel, payload);
+    Nrf24_SetSpeedDataRates(&dev, 0);
+    // Set the receiver address using 5 characters
+    // uint8_t * pipe= {0xAA, 0xBB, 0xCC, 0xDD, 0xEE};
+
+    esp_err_t ret = Nrf24_setTADDR(&dev, (uint8_t *)"FGHIJ");
+    // esp_err_t ret = Nrf24_setTADDR(&dev, pipe);
+
+    if (ret != ESP_OK)
+    {
+        ESP_LOGE(pcTaskGetName(0), "nrf24l01 not installed");
+        while (1)
+        {
+            vTaskDelay(1);
+        }
+    }
+
+    // Print settings
+    Nrf24_printDetails(&dev);
+
+    uint8_t encoded = (row_coordination << 6) | (column_coordination << 4);
+    int attempt = 0;
+    bool isSent = false;
+    while (attempt < MAX_RETRY_ATTEMPTS && !isSent)
+    {
+
+        ESP_LOGI(pcTaskGetName(0), "Attempt #%d to send move..", attempt + 1);
+        Nrf24_send(&dev, &encoded);
+        vTaskDelay(1);
+        ESP_LOGI(pcTaskGetName(0), "Wait for sending.....");
+        if (Nrf24_isSend(&dev, 1000))
+        {
+            ESP_LOGI(pcTaskGetName(0), "Send success: %d", encoded);
+            isSent = true;
+        }
+        else
+        {
+            ESP_LOGW(pcTaskGetName(0), "Send failed. Retrying...");
+            vTaskDelay(pdMS_TO_TICKS(1000)); // Wait before retrying
+        }
+        attempt++;
+    }
+    if (!isSent)
+    {
+        ESP_LOGE(pcTaskGetName(0), "Failed to send score after %d attempts.", MAX_RETRY_ATTEMPTS);
+    }
+    return dev;
+}
+
+void sender_best_move_2(NRF24_t dev, int row_coordination, int column_coordination)
+{
+
+    ESP_LOGI(pcTaskGetName(0), "Start");
+    esp_err_t ret = Nrf24_setTADDR(&dev, (uint8_t *)"FGHIJ");
+    if (ret != ESP_OK)
+    {
+        ESP_LOGE(pcTaskGetName(0), "NRF24L01 not installed");
+        return;
+    }
+
     // Ensure coordinates are within the 0-3 range
     row_coordination &= 0x03;    // Mask to keep only the last 2 bits
     column_coordination &= 0x03; // Mask to keep only the last 2 bits
@@ -191,40 +238,38 @@ void sender_best_move(NRF24_t *dev, int row_coordination, int column_coordinatio
         ESP_LOGE(pcTaskGetName(0), "Failed to send best move after %d attempts.", MAX_RETRY_ATTEMPTS);
     }
 }
-void Nrf_bestMove_config(NRF24_t *dev)
+
+NRF24_t Nrf_bestMove_config(NRF24_t dev)
 {
     Nrf24_init(&dev);
-    uint8_t payload = 32;
+    uint8_t payload = 1;
     uint8_t channel = 115;
     Nrf24_config(&dev, channel, payload);
+    Nrf24_SetSpeedDataRates(&dev, 0);
+    Nrf24_printDetails(&dev);
+    vTaskDelay(pdMS_TO_TICKS(1000)); // Wait after configuring
+    return dev;
+}
+NRF24_t Nrf_score_config(NRF24_t dev)
+{
+    Nrf24_init_2(&dev); // Initialize your NRF24 device
+    uint8_t payload = 1;
+    uint8_t channel = 115;
+    Nrf24_config(&dev, channel, payload);
+    Nrf24_SetSpeedDataRates(&dev, 0);
+    Nrf24_printDetails(&dev);        // Optional: Print NRF device details
+    vTaskDelay(pdMS_TO_TICKS(1000)); // Wait after configuring
+    return dev;
 
-    esp_err_t ret = Nrf24_setTADDR(&dev, (uint8_t *)"FGIJ");
+}
+void sender_score_2(NRF24_t dev, uint8_t player_score, uint8_t computer_score)
+{
+    esp_err_t ret = Nrf24_setTADDR(&dev, (uint8_t *)"FGHIJ");
     if (ret != ESP_OK)
     {
         ESP_LOGE(pcTaskGetName(0), "NRF24L01 not installed");
         return;
     }
-
-    Nrf24_printDetails(&dev);
-}
-void Nrf_score_config(NRF24_t *dev)
-{
-    Nrf24_init_2(&dev); // Initialize your NRF24 device
-    uint8_t payload = 32;
-    uint8_t channel = 115;
-    Nrf24_config(&dev, channel, payload);
-
-    esp_err_t ret = Nrf24_setTADDR(&dev, (uint8_t *)"ABCD");
-    if (ret != ESP_OK)
-    {
-        ESP_LOGE(pcTaskGetName(0), "NRF24L01 not installed");
-        return; // Exit if NRF device is not properly installed
-    }
-
-    Nrf24_printDetails(&dev); // Optional: Print NRF device details
-}
-void sender_score(NRF24_t *dev, uint8_t player_score, uint8_t computer_score)
-{
     player_score &= 0x0F; // Ensure scores are within range 0-15
     computer_score &= 0x0F;
     uint8_t combined_score = (player_score << 4) | computer_score;
@@ -262,13 +307,18 @@ void sender_score(NRF24_t *dev, uint8_t player_score, uint8_t computer_score)
 
 // #endif // CONFIG_SENDER
 
-// void app_main(void)
-// {
-//     // #if CONFIG_RECEIVER
-//     // xTaskCreate(&receiver, "RECEIVER", 1024*3, NULL, 2, NULL);
-//     // #endif
-
-//     // #if CONFIG_SENDER
-//     xTaskCreate(&sender, "SENDER", 1024 * 3, NULL, 2, NULL);
-//     // #endif
-// }
+void app_main(void)
+{
+    NRF24_t dev = Nrf_bestMove_config(dev);
+    vTaskDelay(1000 / portTICK_PERIOD_MS);
+    sender_best_move_2(dev, 0, 0);
+    sender_best_move_2(dev, 0, 0);
+    // printf("Sending first batch of moves\n");
+    // NRF24_t dev = sender_best_move(1, 2);
+    // vTaskDelay(1000 / portTICK_PERIOD_MS);
+    // printf("Sending second batch of moves\n");
+    // sender_best_move_2(dev, 0, 0);
+    // printf("Sending third batch of moves\n");
+    // sender_best_move_2(dev, 0, 0);
+ 
+}
