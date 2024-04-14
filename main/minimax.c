@@ -6,8 +6,6 @@
 #include <stdlib.h> // For srand()
 #include <time.h>   // For time()
 
-#define PLAYER 'O'
-#define COMPUTER 'X'
 
 // Function to evaluate the score of the board
 void draw(char b[3][3])

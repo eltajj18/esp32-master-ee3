@@ -42,11 +42,6 @@ void sender(void *pvParameters)
             vTaskDelay(1);
         }
     }
-
-#if CONFIG_ADVANCED
-    AdvancedSettings(&dev);
-#endif // CONFIG_ADVANCED
-
     // Print settings
     Nrf24_printDetails(&dev);
 
