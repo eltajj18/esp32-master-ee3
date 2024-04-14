@@ -1,23 +1,7 @@
-| Supported Targets | ESP32 | ESP32-C2 | ESP32-C3 | ESP32-C6 | ESP32-H2 | ESP32-P4 | ESP32-S2 | ESP32-S3 |
-| ----------------- | ----- | -------- | -------- | -------- | -------- | -------- | -------- | -------- |
-
-# _Sample project_
-
-(See the README.md file in the upper level 'examples' directory for more information about examples.)
-
-This is the simplest buildable example. The example is used by command `idf.py create-project`
-that copies the project to user specified path and set it's name. For more information follow the [docs page](https://docs.espressif.com/projects/esp-idf/en/latest/api-guides/build-system.html#start-a-new-project)
-
-
-
-## How to use example
-We encourage the users to use the example as a template for the new projects.
-A recommended way is to follow the instructions on a [docs page](https://docs.espressif.com/projects/esp-idf/en/latest/api-guides/build-system.html#start-a-new-project).
+# ESP32 Master Node Project
+## ESP-IDF Project to communicate the score or next move to make in the game of tic-tac-toe to STM8 slave nodes through NRF using minimax algorithm, HTTP requests
 
 ## Example folder contents
-
-The project **sample_project** contains one source file in C language [main.c](main/main.c). The file is located in folder [main](main).
-
 ESP-IDF projects are built using CMake. The project build configuration is contained in `CMakeLists.txt`
 files that provide set of directives and instructions describing the project's source files and targets
 (executable, library, or both). 
@@ -27,14 +11,34 @@ Below is short explanation of remaining files in the project folder.
 ```
 ├── CMakeLists.txt
 ├── main
+    ├── include
+        ├── game_config.h
+        ├── minimax.h
+        ├── http_request.h
+        ├── mirf.h
+        ├── nrf_configuration.h
+        ├── wifi_connection.h
 │   ├── CMakeLists.txt
-│   └── main.c
+│   ├── main.c
+│   ├── minimax.c
+    ├── game_config.c
+    ├── http_request.c
+    ├── mirf.c
+    ├── nrf_configuration.c
+   
 └── README.md                  This is the file you are currently reading
 ```
 Additionally, the sample project contains Makefile and component.mk files, used for the legacy Make based build system. 
 They are not used or needed when building with CMake and idf.py.
+## Functionalities
+* NRF communication between ESP32 and STM8
+* Minimax Algorithm to calculate best move to make in the game of tic-tac-toe
+* Wi-Fi Connection
+* HTTP GET and HTTP POST and Polling requests implementation from and to FastAPI server
+## Flow Chart
+![EE3_ESP32 - Page 2](https://github.com/eltajj18/esp32-master-ee3/assets/100543589/d09cf5f7-1c9e-4e4d-9873-914cff21efb9)
 
 ## Resources
-
-https://www.geeksforgeeks.org/finding-optimal-move-in-tic-tac-toe-using-minimax-algorithm-in-game-theory/
-https://github.com/nopnop2002/esp-idf-mirf
+* I followed a tutorial from<a href = "https://www.geeksforgeeks.org/finding-optimal-move-in-tic-tac-toe-using-minimax-algorithm-in-game-theory/
+"> geeksforgeeks </a> for part of the minimax alghorithm
+* All the credit for the NRF library goes to<a href = "https://github.com/nopnop2002/esp-idf-mirf"> nopnop20020 </a>
