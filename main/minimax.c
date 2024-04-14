@@ -5,7 +5,7 @@
 #include "freertos/task.h"
 #include <stdlib.h> // For srand()
 #include <time.h>   // For time()
-
+#include "include/game_config.h"
 
 // Function to evaluate the score of the board
 void draw(char b[3][3])
@@ -35,9 +35,9 @@ int evaluate(char board[3][3])
         if (board[row][0] == board[row][1] &&
             board[row][1] == board[row][2])
         {
-            if (board[row][0] == COMPUTER)
+            if (board[row][0] == COMPUTER_MOVE)
                 return +10;
-            else if (board[row][0] == PLAYER)
+            else if (board[row][0] == PLAYER_MOVE)
                 return -10;
         }
     }
@@ -48,9 +48,9 @@ int evaluate(char board[3][3])
         if (board[0][col] == board[1][col] &&
             board[1][col] == board[2][col])
         {
-            if (board[0][col] == COMPUTER)
+            if (board[0][col] == COMPUTER_MOVE)
                 return +10;
-            else if (board[0][col] == PLAYER)
+            else if (board[0][col] == PLAYER_MOVE)
                 return -10;
         }
     }
@@ -58,16 +58,16 @@ int evaluate(char board[3][3])
     // Checking for Diagonals for X or O victory.
     if (board[0][0] == board[1][1] && board[1][1] == board[2][2])
     {
-        if (board[0][0] == COMPUTER)
+        if (board[0][0] == COMPUTER_MOVE)
             return +10;
-        else if (board[0][0] == PLAYER)
+        else if (board[0][0] == PLAYER_MOVE)
             return -10;
     }
     if (board[0][2] == board[1][1] && board[1][1] == board[2][0])
     {
-        if (board[0][2] == COMPUTER)
+        if (board[0][2] == COMPUTER_MOVE)
             return +10;
-        else if (board[0][2] == PLAYER)
+        else if (board[0][2] == PLAYER_MOVE)
             return -10;
     }
 
@@ -116,7 +116,7 @@ int minimax(char board[3][3], int depth, bool isMax)
                 if (board[i][j] == ' ')
                 {
                     // Make the move
-                    board[i][j] = COMPUTER;
+                    board[i][j] = COMPUTER_MOVE;
 
                     // Call minimax recursively and choose the maximum value
                     // vTaskDelay(20 / portTICK_PERIOD_MS);
@@ -144,7 +144,7 @@ int minimax(char board[3][3], int depth, bool isMax)
                 if (board[i][j] == ' ')
                 {
                     // Make the move
-                    board[i][j] = PLAYER;
+                    board[i][j] = PLAYER_MOVE;
 
                     // Call minimax recursively and choose the minimum value
                     best = (best < minimax(board, depth + 1, !isMax)) ? best : minimax(board, depth + 1, !isMax);
@@ -182,7 +182,7 @@ else{
             if (board[i][j] == ' ')
             {
                 // Make the move
-                board[i][j] = COMPUTER;
+                board[i][j] = COMPUTER_MOVE;
 
                 // Compute evaluation function for this move.
                 // int moveVal = minimax(board, 0, false);

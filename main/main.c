@@ -11,6 +11,7 @@
 #include "freertos/portmacro.h"
 #include "include/nrf_configuration.h"
 #include "include/mirf.h"
+#include "include/game_config.h"
 
 volatile bool is_processing = false;
 // #define BLINK_GPIO_1 2
@@ -62,11 +63,14 @@ void button_press_task(void *pvParameter)
 
     // Only proceed if polling is successful
     char *game_state = get_game_state();
-    // printf("Game state: %c %c %c %c %c %c %c %c %c \n", game_state[0], game_state[1], game_state[2], game_state[3], game_state[4], game_state[5], game_state[6], game_state[7], game_state[8]);
     char board[3][3] = {};
     transformArrayTo3x3(game_state, board);
     // drawsa();
     draw(board);
+
+    char firstMoveSymbol;
+    configureMoves(board, &firstMoveSymbol);
+    printf("Computer plays as: %c\n", COMPUTER_MOVE);
 
     vTaskDelay(200 / portTICK_PERIOD_MS);
     if (!isMovesLeft(board))
@@ -83,7 +87,7 @@ void button_press_task(void *pvParameter)
             /*Check if there is no winnner*/
             Move mediumMove = medium(board);
             printf("The best move is: %d %d\n", mediumMove.row, mediumMove.col);
-            sender_best_move(dev_medium_move, mediumMove.row, mediumMove.col);
+            sender_best_move(dev_medium_move, mediumMove.row, mediumMove.col, isComputerMoveO());
         }
         else
         {

@@ -17,7 +17,7 @@
 #include <stdint.h>
 #include "include/mirf.h"
 #include "include/nrf_configuration.h"
-
+#include "include/game_config.h"
 
 void sender(void *pvParameters)
 {
@@ -64,7 +64,7 @@ void sender(void *pvParameters)
     }
 }
 
-void sender_best_move(NRF24_t dev, int row_coordination, int column_coordination)
+void sender_best_move(NRF24_t dev, int row_coordination, int column_coordination,bool isComputerMoveO)
 {
 
     ESP_LOGI(pcTaskGetName(0), "Start Sending Best Move");
@@ -74,16 +74,17 @@ void sender_best_move(NRF24_t dev, int row_coordination, int column_coordination
         ESP_LOGE(pcTaskGetName(0), "NRF24L01 not installed");
         return;
     }
+    uint8_t move_type = isComputerMoveO ? 1 : 0;  // Assuming '1' for 'O', '0' for 'X'
 
     // Ensure coordinates are within the 0-3 range
     row_coordination &= 0x03;    // Mask to keep only the last 2 bits
     column_coordination &= 0x03; // Mask to keep only the last 2 bits
 
     // Encode row and column into the first and second pair of bits, respectively
-    uint8_t encoded = (row_coordination << 6) | (column_coordination << 4);
+    uint8_t encoded = (row_coordination << 6) | (column_coordination << 4) | (move_type << 3);
 
     // Now encoded contains the desired structure:
-    // RRCC0000 where RR = row, CC = column, and 0000 = unused.
+    // RRCCMT00 where RR = row, CC = column, and MT represents the move type (1 bit), 000 = unused.
 
     // Proceed with sending `encoded` as before...
     // Send encoded value

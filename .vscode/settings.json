@@ -28,6 +28,7 @@
         "stdbool.h": "c",
         "random": "c",
         "cjson.h": "c",
-        "esp_task_wdt.h": "c"
+        "esp_task_wdt.h": "c",
+        "stdlib.h": "c"
     }
 }
