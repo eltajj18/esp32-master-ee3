@@ -1,5 +1,5 @@
 # ESP32 Master Node Project
-## ESP-IDF Project to communicate the score or next move to make in the game of tic-tac-toe to STM8 slave nodes through NRF using minimax algorithm, HTTP requests
+### ESP-IDF Project to communicate the score or next move to make in the game of tic-tac-toe to STM8 slave nodes through NRF using minimax algorithm, HTTP requests
 
 ## Example folder contents
 ESP-IDF projects are built using CMake. The project build configuration is contained in `CMakeLists.txt`
