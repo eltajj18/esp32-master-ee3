@@ -11,13 +11,9 @@
 #include "include/wifi_connection.h"
 #include "cJSON.h"
 #include "include/http_request.h"
-
 char game_state[9];
-
 int retry_num = 0;
-
 bool is_array_ready = false;
-
 static void wifi_event_handler(void *event_handler_arg, esp_event_base_t event_base, int32_t event_id, void *event_data)
 {
     if (event_id == WIFI_EVENT_STA_START)
@@ -58,10 +54,7 @@ void wifi_connection()
         .sta = {
             .ssid = SSID,
             .password = PASSWORD,
-
-        }
-
-    };
+        }};
     strcpy((char *)wifi_configuration.sta.ssid, SSID);
     strcpy((char *)wifi_configuration.sta.password, PASSWORD);
     // esp_log_write(ESP_LOG_INFO, "Kconfig", "SSID=%s, PASS=%s", ssid, pass);
@@ -73,7 +66,6 @@ void wifi_connection()
     esp_wifi_connect();
     printf("wifi_init_softap finished. SSID:%s  password:%s", SSID, PASSWORD);
 }
-
 esp_err_t client_event_get_handler(esp_http_client_event_handle_t evt)
 {
     switch (evt->event_id)
@@ -106,7 +98,6 @@ esp_err_t client_event_get_handler(esp_http_client_event_handle_t evt)
             }
         }
         break;
-
     default:
         break;
     }
@@ -119,30 +110,33 @@ void get_rest_array()
         .method = HTTP_METHOD_GET,
         .cert_pem = NULL,
         .event_handler = client_event_get_handler};
-    while (true)
-    {
-        esp_http_client_handle_t client = esp_http_client_init(&config_get);
-        esp_err_t err = esp_http_client_perform(client);
-        if (err == ESP_OK)
-        {
-            printf("GET request successfully received and processed.\n");
-            esp_http_client_cleanup(client);
-            break; // Exit the loop on successful GET
-        }
-        else
-        {
-            ESP_LOGE("HTTP_GET", "HTTP GET failed: %s", esp_err_to_name(err));
-            esp_http_client_cleanup(client);
-            vTaskDelay(pdMS_TO_TICKS(500)); // Delay 0.5 second before retrying
-        }
-    }
+
+    esp_http_client_handle_t client = esp_http_client_init(&config_get);
+    esp_http_client_perform(client);
+    esp_http_client_cleanup(client);
+    // while (true)
+    // {
+    //     esp_http_client_handle_t client = esp_http_client_init(&config_get);
+    //     esp_err_t err = esp_http_client_perform(client);
+    //     if (err == ESP_OK)
+    //     {
+    //         printf("GET request successfully received and processed.\n");
+    //         esp_http_client_cleanup(client);
+    //         break; // Exit the loop on successful GET
+    //     }
+    //     else
+    //     {
+    //         ESP_LOGE("HTTP_GET", "HTTP GET failed: %s", esp_err_to_name(err));
+    //         esp_http_client_cleanup(client);
+    //         vTaskDelay(pdMS_TO_TICKS(2000)); // Delay 0.5 second before retrying
+    //     }
+    // }
 }
 
 char *get_game_state()
 {
     return game_state;
 }
-
 esp_err_t client_event_post_handler(esp_http_client_event_handle_t evt)
 {
     switch (evt->event_id)
@@ -150,13 +144,11 @@ esp_err_t client_event_post_handler(esp_http_client_event_handle_t evt)
     case HTTP_EVENT_ON_DATA:
         printf("HTTP_EVENT_ON_DATA: %.*s\n", evt->data_len, (char *)evt->data);
         break;
-
     default:
         break;
     }
     return ESP_OK;
 }
-
 void post_rest_button()
 {
     esp_http_client_config_t config_post = {
@@ -164,28 +156,29 @@ void post_rest_button()
         .method = HTTP_METHOD_POST,
         .cert_pem = NULL,
         .event_handler = client_event_post_handler};
-    while (true)
-    {
-        esp_http_client_handle_t client = esp_http_client_init(&config_post);
-
-        const char *post_data = "{\"action\": \"capture\"}";
-        esp_http_client_set_post_field(client, post_data, strlen(post_data));
-        esp_http_client_set_header(client, "Content-Type", "application/json");
-
-        esp_err_t err = esp_http_client_perform(client);
-        if (err == ESP_OK)
-        {
-            printf("POST request successfully sent.\n");
-            esp_http_client_cleanup(client);
-            break; // Exit the loop on successful POST
-        }
-        else
-        {
-            ESP_LOGE("HTTP_POST", "HTTP POST failed: %s", esp_err_to_name(err));
-            esp_http_client_cleanup(client);
-            vTaskDelay(pdMS_TO_TICKS(500)); // Delay 0.5 second before retrying
-        }
-    }
+    // while (true)
+    // {
+    //     esp_http_client_handle_t client = esp_http_client_init(&config_post);
+    esp_http_client_handle_t client = esp_http_client_init(&config_post);
+    const char *post_data = "{\"action\": \"capture\"}";
+    esp_http_client_set_post_field(client, post_data, strlen(post_data));
+    esp_http_client_set_header(client, "Content-Type", "application/json");
+    esp_http_client_perform(client);
+    esp_http_client_cleanup(client);
+    // esp_err_t err = esp_http_client_perform(client);
+    // if (err == ESP_OK)
+    // {
+    //     printf("POST request successfully sent.\n");
+    //     esp_http_client_cleanup(client);
+    //     break; // Exit the loop on successful POST
+    // }
+    // else
+    //     {
+    //         ESP_LOGE("HTTP_POST", "HTTP POST failed: %s", esp_err_to_name(err));
+    //         esp_http_client_cleanup(client);
+    //         vTaskDelay(pdMS_TO_TICKS(2)); // Delay 0.5 second before retrying
+    //     }
+    // }
 }
 
 esp_err_t http_event_handler(esp_http_client_event_t *evt)
@@ -272,7 +265,7 @@ bool poll_if_ready()
 //     printf("WIFI was initiated ...........\n\n");
 //     while (1)
 //     {
+//         vTaskDelay(2000 / portTICK_PERIOD_MS);
 //         post_rest_button(); // Assume this sends a signal to the server to capture an image
-//         vTaskDelay(5000 / portTICK_PERIOD_MS);
 //     }
 // }

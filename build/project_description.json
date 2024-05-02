@@ -1,7 +1,7 @@
 {
     "version":            "1.1",
     "project_name":       "esp-master-ee3",
-    "project_version":    "9f73708-dirty",
+    "project_version":    "3557d15-dirty",
     "project_path":       "C:/Users/eltac/Desktop/VS_CODE/esp-master-ee3",
     "idf_path":           "C:/Users/eltac/esp/v5.2/esp-idf",
     "build_dir":          "C:/Users/eltac/Desktop/VS_CODE/esp-master-ee3/build",
@@ -805,7 +805,7 @@
             "managed_reqs": [],
             "managed_priv_reqs": [],
             "file": "C:/Users/eltac/Desktop/VS_CODE/esp-master-ee3/build/esp-idf/main/libmain.a",
-            "sources": [ "C:/Users/eltac/Desktop/VS_CODE/esp-master-ee3/main/mirf.c", "C:/Users/eltac/Desktop/VS_CODE/esp-master-ee3/main/nrf_configuration.c", "C:/Users/eltac/Desktop/VS_CODE/esp-master-ee3/main/main.c", "C:/Users/eltac/Desktop/VS_CODE/esp-master-ee3/main/http_request.c", "C:/Users/eltac/Desktop/VS_CODE/esp-master-ee3/main/minimax.c", "C:/Users/eltac/Desktop/VS_CODE/esp-master-ee3/main/game_config.c" ],
+            "sources": [ "C:/Users/eltac/Desktop/VS_CODE/esp-master-ee3/main/mirf.c", "C:/Users/eltac/Desktop/VS_CODE/esp-master-ee3/main/nrf_configuration.c", "C:/Users/eltac/Desktop/VS_CODE/esp-master-ee3/main/game_config.c" ],
             "include_dirs": [ "." ]
         },
         "mbedtls": {

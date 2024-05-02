@@ -2,7 +2,7 @@
 #define NRF_CONFIG_H
 
 // Declare any constants that might be needed externally
-#define MAX_RETRY_ATTEMPTS 8
+#define MAX_RETRY_ATTEMPTS 50
 #include "include/mirf.h"
 
 // Function declarations

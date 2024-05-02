@@ -76,8 +76,8 @@ void Nrf24_init(NRF24_t *dev)
 
     dev->cePin = CONFIG_CE_GPIO;
     dev->csnPin = CONFIG_CSN_GPIO;
-    dev->channel = 1;
-    dev->payload = 16;
+    dev->channel = 115;
+    dev->payload = 1;
     dev->_SPIHandle = handle;
 }
 
@@ -130,8 +130,8 @@ void Nrf24_init_2(NRF24_t *dev)
 
     dev->cePin = CONFIG_CE_GPIO_2;
     dev->csnPin = CONFIG_CSN_GPIO_2;
-    dev->channel = 1;
-    dev->payload = 16;
+    dev->channel = 115;
+    dev->payload = 1;
     dev->_SPIHandle = handle;
 }
 

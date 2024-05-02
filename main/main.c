@@ -88,6 +88,19 @@ void button_press_task(void *pvParameter)
             Move mediumMove = medium(board);
             printf("The best move is: %d %d\n", mediumMove.row, mediumMove.col);
             sender_best_move(dev_medium_move, mediumMove.row, mediumMove.col, isComputerMoveO());
+            // board[mediumMove.row][mediumMove.col] = COMPUTER_MOVE;
+            // if (evaluate(board) != 0)
+            // {
+            //     vTaskDelay(3000 / portTICK_PERIOD_MS); // wait for the machine to draw the board then send the score for dramatic effect
+            //     evaluate_game(evaluate(board));
+            //     printf("The score is: %d\n", evaluate(board));
+            //     // sender_score(dev_score, player_score, computer_score);
+            // }
+
+            // else
+            // {
+            //     draw(board); // otherwise just draw the board and move to show the output
+            // }
         }
         else
         {
@@ -98,7 +111,7 @@ void button_press_task(void *pvParameter)
             // sender_score(dev_score, player_score, computer_score);
         }
     }
-            vTaskDelay(3000 / portTICK_PERIOD_MS); // wait for the machine to draw the board
+    vTaskDelay(3000 / portTICK_PERIOD_MS); // wait for the machine to draw the board
 cleanup:
     // Clean up and prepare for the next button press
     printf("Getting ready for a new button press\n\n");
@@ -127,7 +140,7 @@ void app_main(void)
     dev_medium_move = Nrf_bestMove_config(dev_medium_move);
 
     /*Configure Nrf24 that is responsible for sending score*/
-    // dev_score = Nrf_bestMove_config(dev_score);
+    dev_score = Nrf_score_config(dev_score);
 
     while (1)
     {
