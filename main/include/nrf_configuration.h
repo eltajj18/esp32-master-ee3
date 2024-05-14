@@ -8,9 +8,9 @@
 // Function declarations
 
 void sender(void *pvParameters);
-void sender_best_move(NRF24_t dev,int row_coordination, int column_coordination,bool isComputerMoveO);
-NRF24_t  Nrf_bestMove_config(NRF24_t dev);
-NRF24_t Nrf_score_config(NRF24_t dev);
-void sender_score(NRF24_t dev,uint8_t player_score, uint8_t computer_score);
+void sender_best_move(NRF24_t* dev,int row_coordination, int column_coordination,bool isComputerMoveO);
+void  Nrf_bestMove_config(NRF24_t* dev);
+void Nrf_score_config(NRF24_t* dev);
+void sender_score(NRF24_t* dev,uint8_t player_score, uint8_t computer_score);
 
 #endif // NRF_CONFIG_H

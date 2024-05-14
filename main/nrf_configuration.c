@@ -115,11 +115,11 @@ void sender(void *pvParameters)
     }
 }
 
-void sender_best_move(NRF24_t dev, int row_coordination, int column_coordination, bool isComputerMoveO)
+void sender_best_move(NRF24_t *dev, int row_coordination, int column_coordination, bool isComputerMoveO)
 {
 
     ESP_LOGI(pcTaskGetName(0), "Start Sending Best Move");
-    esp_err_t ret = Nrf24_setTADDR(&dev, (uint8_t *)"FGHIJ");
+    esp_err_t ret = Nrf24_setTADDR(dev, (uint8_t *)"FGHIJ");
     if (ret != ESP_OK)
     {
         ESP_LOGE(pcTaskGetName(0), "NRF24L01 not installed");
@@ -163,7 +163,9 @@ void sender_best_move(NRF24_t dev, int row_coordination, int column_coordination
     }
     // Encode row and column into the first and second pair of bits, respectively
     // uint8_t encoded = (row_cord << 6) | (col_cord << 4) | (move_type << 3);
+    uint8_t buffer[32] = {0};
     uint8_t encoded = (row_cord_binary << 6) | (col_cord_binary << 4) | (move_type << 3);
+    buffer[0] = encoded;
     // Now encoded contains the desired structure:
     // RRCCMT00 where RR = row, CC = column, and MT represents the move type (1 bit), 000 = unused.
 
@@ -171,61 +173,61 @@ void sender_best_move(NRF24_t dev, int row_coordination, int column_coordination
     // Send encoded value
     int attempt = 0;
     bool isSent = false;
-    while (attempt < MAX_RETRY_ATTEMPTS && !isSent)
-    {
-        vTaskDelay(20 / portTICK_PERIOD_MS);
+    // while (!isSent)
+    // {
+    // vTaskDelay(20 / portTICK_PERIOD_MS);
 
+    ESP_LOGI(pcTaskGetName(0), "Attempt #%d to send best move...", attempt + 1);
+    Nrf24_send(dev, buffer); // Ensure you're using the correct signature
+
+    vTaskDelay(pdMS_TO_TICKS(10)); // Short delay to allow for transmission
+
+    while (!Nrf24_isSend(dev, 1000))
+    {
+
+        ESP_LOGW(pcTaskGetName(0), "Send Fail. Encoded move: %02X", encoded);
         ESP_LOGI(pcTaskGetName(0), "Attempt #%d to send best move...", attempt + 1);
-        Nrf24_send(&dev, &encoded); // Ensure you're using the correct signature
 
-        // vTaskDelay(pdMS_TO_TICKS(10)); // Short delay to allow for transmission
-
-        if (Nrf24_isSend(&dev, 1000))
-        {
-            ESP_LOGI(pcTaskGetName(0), "Send success. Encoded move: %02X", encoded);
-            isSent = true;
-        }
-
-        else
-        {
-            ESP_LOGW(pcTaskGetName(0), "Send failed. Retrying...");
-            // vTaskDelay(pdMS_TO_TICKS(2000)); // Wait before retrying
-        }
+        // isSent = true;
+        Nrf24_send(dev, buffer);
         attempt++;
+        vTaskDelay(pdMS_TO_TICKS(100)); // Wait before retrying
     }
 
-    if (!isSent)
-    {
-        ESP_LOGE(pcTaskGetName(0), "Failed to send best move after %d attempts.", MAX_RETRY_ATTEMPTS);
-    }
+    ESP_LOGI(pcTaskGetName(0), "Send success. Encoded move: %02X", encoded);
+    vTaskDelay(pdMS_TO_TICKS(20)); // Wait before retrying
 }
 
-NRF24_t Nrf_bestMove_config(NRF24_t dev)
+// if (!isSent)
+// {
+//     ESP_LOGE(pcTaskGetName(0), "Failed to send best move after %d attempts.", MAX_RETRY_ATTEMPTS);
+// }
+// }
+
+void Nrf_bestMove_config(NRF24_t *dev)
 {
-    Nrf24_init(&dev);
-    uint8_t payload = 1;
+    Nrf24_init(dev);
+    uint8_t payload = 32;
     uint8_t channel = 115;
-    Nrf24_config(&dev, channel, payload);
-    Nrf24_SetSpeedDataRates(&dev, 0);
-    Nrf24_printDetails(&dev);
+    Nrf24_config(dev, channel, payload);
+    Nrf24_SetSpeedDataRates(dev, 0);
+    Nrf24_printDetails(dev);
     vTaskDelay(pdMS_TO_TICKS(50)); // Wait after configuring
-    return dev;
 }
-NRF24_t Nrf_score_config(NRF24_t dev)
+void Nrf_score_config(NRF24_t *dev)
 {
-    Nrf24_init_2(&dev); // Initialize your NRF24 device
-    uint8_t payload = 1;
+    Nrf24_init_2(dev); // Initialize your NRF24 device
+    uint8_t payload = 32;
     uint8_t channel = 115;
-    Nrf24_config(&dev, channel, payload);
-    Nrf24_SetSpeedDataRates(&dev, 0);
-    Nrf24_printDetails(&dev);      // Optional: Print NRF device details
+    Nrf24_config(dev, channel, payload);
+    Nrf24_SetSpeedDataRates(dev, 0);
+    Nrf24_printDetails(dev);       // Optional: Print NRF device details
     vTaskDelay(pdMS_TO_TICKS(50)); // Wait after configuring
-    return dev;
 }
 
-void sender_score(NRF24_t dev, uint8_t player_score, uint8_t computer_score)
+void sender_score(NRF24_t *dev, uint8_t player_score, uint8_t computer_score)
 {
-    esp_err_t ret = Nrf24_setTADDR(&dev, (uint8_t *)"ABCDE");
+    esp_err_t ret = Nrf24_setTADDR(dev, (uint8_t *)"ABCDE");
     if (ret != ESP_OK)
     {
         ESP_LOGE(pcTaskGetName(0), "NRF24L01 not installed");
@@ -233,38 +235,41 @@ void sender_score(NRF24_t dev, uint8_t player_score, uint8_t computer_score)
     }
     player_score &= 0x0F; // Ensure scores are within range 0-15
     computer_score &= 0x0F;
+    uint8_t buffer[32] = {0};
     uint8_t combined_score = (player_score << 4) | computer_score;
-
+    buffer[0] = combined_score;
     ESP_LOGI(pcTaskGetName(0), "Start Sending Score");
 
     int attempt = 0;
-    bool isSent = false;
-    while (attempt < MAX_RETRY_ATTEMPTS && !isSent)
-    {
-        vTaskDelay(20 / portTICK_PERIOD_MS);
+    // bool isSent = false;
+    // while (attempt < MAX_RETRY_ATTEMPTS && !isSent)
+    // {
+    vTaskDelay(100 / portTICK_PERIOD_MS);
+    ESP_LOGI(pcTaskGetName(0), "Attempt #%d to send score...", attempt + 1);
+    Nrf24_send(dev, buffer); // Ensure correct send function signature
+    vTaskDelay(pdMS_TO_TICKS(10));    // Short delay to wait for send completion
 
+    while (!Nrf24_isSend(dev, 1000))
+    { // Check if send was successful
+        ESP_LOGI(pcTaskGetName(0), "Send failed. Retrying...");
         ESP_LOGI(pcTaskGetName(0), "Attempt #%d to send score...", attempt + 1);
-        Nrf24_send(&dev, &combined_score); // Ensure correct send function signature
-        // vTaskDelay(pdMS_TO_TICKS(10));     // Short delay to wait for send completion
-
-        if (Nrf24_isSend(&dev, 1000))
-        { // Check if send was successful
-            ESP_LOGI(pcTaskGetName(0), "Send success. Combined score: %d", combined_score);
-            isSent = true;
-        }
-        else
-        {
-            ESP_LOGW(pcTaskGetName(0), "Send failed. Retrying...");
-            // vTaskDelay(pdMS_TO_TICKS(1000)); // Wait before retrying
-        }
+        Nrf24_send(dev, buffer); // Ensure correct send function signature
+        // isSent = true;
         attempt++;
+        vTaskDelay(pdMS_TO_TICKS(100));
     }
 
-    if (!isSent)
-    {
-        ESP_LOGE(pcTaskGetName(0), "Failed to send score after %d attempts.", MAX_RETRY_ATTEMPTS);
-    }
+    ESP_LOGI(pcTaskGetName(0), "Send success. Combined score: %d", combined_score);
+    vTaskDelay(pdMS_TO_TICKS(20)); // Wait before retrying
+
+    // vTaskDelay(pdMS_TO_TICKS(1000)); // Wait before retrying
 }
+
+// if (!isSent)
+// {
+//     ESP_LOGE(pcTaskGetName(0), "Failed to send score after %d attempts.", MAX_RETRY_ATTEMPTS);
+// }
+// }
 
 // #endif // CONFIG_SENDER
 void receiver_score(NRF24_t dev)
@@ -282,7 +287,7 @@ void receiver_score(NRF24_t dev)
     ESP_LOGI(pcTaskGetName(0), "Start Receiving Score");
 
     // Clear RX FiFo
-      while (1)
+    while (1)
     {
         if (Nrf24_dataReady(&dev) == false)
             break;
@@ -316,7 +321,7 @@ void receiver_best_move(NRF24_t dev)
     uint8_t buffer[1];
     ESP_LOGI(pcTaskGetName(0), "Start Receiving best move");
     // Clear RX FiFo
-      while (1)
+    while (1)
     {
         if (Nrf24_dataReady(&dev) == false)
             break;
@@ -343,26 +348,49 @@ void receiver_best_move(NRF24_t dev)
 void app_main(void)
 {
 
-    NRF24_t dev = Nrf_score_config(dev);
+    NRF24_t *dev = malloc(sizeof(NRF24_t));
+    Nrf_bestMove_config(dev);
     // NRF24_t dev_score = Nrf_bestMove_config(dev_score);
     // receiver_best_move(dev_score);
     while (1)
-     {
+    {
 
         printf("Starting the loop\n");
-        vTaskDelay(1000 / portTICK_PERIOD_MS);
-    // //     printf("Sending first batch of scores\n");
-    //     sender_best_move(dev, 2, 2, false);
-        sender_score(dev, 1, 2);
-        vTaskDelay(1000 / portTICK_PERIOD_MS);
+        // vTaskDelay(15000 / portTICK_PERIOD_MS);
+        // //     printf("Sending first batch of scores\n");
+        sender_best_move(dev,0,0,true);
+        vTaskDelay(15000 / portTICK_PERIOD_MS);
+        sender_best_move(dev,1,1,true);
+        vTaskDelay(15000 / portTICK_PERIOD_MS);
+        sender_best_move(dev,2,2,true);
+        vTaskDelay(15000 / portTICK_PERIOD_MS);
+        // sender_score(dev, 0, 1);
+        // vTaskDelay(15000 / portTICK_PERIOD_MS);
+        // sender_best_move(dev,0,1,true);
+        // vTaskDelay(15000 / portTICK_PERIOD_MS);
+        // sender_best_move(dev,2,1,true);
+        // vTaskDelay(15000 / portTICK_PERIOD_MS);
+        // sender_best_move(dev,2,1,true);
+        // vTaskDelay(15000 / portTICK_PERIOD_MS);
+        // sender_best_move(dev,2,1,true);
+        // vTaskDelay(15000 / portTICK_PERIOD_MS);
+        // sender_best_move(dev,2,1,true);
+        // vTaskDelay(15000 / portTICK_PERIOD_MS);
+        // sender_best_move(dev,2,1,true);
+        // vTaskDelay(15000 / portTICK_PERIOD_MS);
 
-    // // //     // vTaskDelay(2000 / portTICK_PERIOD_MS);
-    //     printf("Sending second batch of moves\n");
-        sender_score(dev, 8, 10);
-        
-        }
 
-    //     sender_best_move(dev,2,1,true);}
+        // sender_score(dev, 1, 2);
+        // vTaskDelay(15000 / portTICK_PERIOD_MS);
+
+        // // //     // vTaskDelay(2000 / portTICK_PERIOD_MS);
+        //     printf("Sending second batch of moves\n");
+        // sender_score(dev, 8, 10);
+
+        // }
+
+        // sender_best_move(dev,2,1,true);
+    }
     // // vTaskDelay(5000 / portTICK_PERIOD_MS);
     // // printf("Sending second batch of moves\n");
     // // sender_best_move(dev, 0, 0, false);

@@ -1,7 +1,7 @@
 {
     "version":            "1.1",
     "project_name":       "esp-master-ee3",
-    "project_version":    "3557d15-dirty",
+    "project_version":    "3d2296b-dirty",
     "project_path":       "C:/Users/eltac/Desktop/VS_CODE/esp-master-ee3",
     "idf_path":           "C:/Users/eltac/esp/v5.2/esp-idf",
     "build_dir":          "C:/Users/eltac/Desktop/VS_CODE/esp-master-ee3/build",

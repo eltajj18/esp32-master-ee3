@@ -17,7 +17,8 @@
 
 // #endif
 
-static const int SPI_Frequency = 4000000; // Stable even with a long jumper cable
+static const int SPI_Frequency = 1000000; // Stable even with a long jumper cable
+//static const int SPI_Frequency = 4000000; // Stable even with a long jumper cable
 
 // static const int SPI_Frequency = 6000000;
 // static const int SPI_Frequency = 8000000; // Requires a short jumper cable
