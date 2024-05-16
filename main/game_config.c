@@ -35,10 +35,17 @@ int configureMoves(char board[3][3], char *firstMoveSymbol)
     if (moveCount == 0)
     {
         COMPUTER_MOVE = 'X';
+        PLAYER_MOVE = 'O';
     }
     else if (moveCount == 1)
     {
         COMPUTER_MOVE = (*firstMoveSymbol == 'X') ? 'O' : 'X';
+        if(COMPUTER_MOVE== 'O'){
+            PLAYER_MOVE = 'X';
+        }
+        else{
+            PLAYER_MOVE = 'O';
+        }
     }
 
     return moveCount;

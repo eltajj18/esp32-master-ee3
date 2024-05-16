@@ -172,11 +172,7 @@ void sender_best_move(NRF24_t *dev, int row_coordination, int column_coordinatio
     // Proceed with sending `encoded` as before...
     // Send encoded value
     int attempt = 0;
-    bool isSent = false;
-    // while (!isSent)
-    // {
-    // vTaskDelay(20 / portTICK_PERIOD_MS);
-
+    
     ESP_LOGI(pcTaskGetName(0), "Attempt #%d to send best move...", attempt + 1);
     Nrf24_send(dev, buffer); // Ensure you're using the correct signature
 
@@ -198,11 +194,6 @@ void sender_best_move(NRF24_t *dev, int row_coordination, int column_coordinatio
     vTaskDelay(pdMS_TO_TICKS(20)); // Wait before retrying
 }
 
-// if (!isSent)
-// {
-//     ESP_LOGE(pcTaskGetName(0), "Failed to send best move after %d attempts.", MAX_RETRY_ATTEMPTS);
-// }
-// }
 
 void Nrf_bestMove_config(NRF24_t *dev)
 {
@@ -241,9 +232,7 @@ void sender_score(NRF24_t *dev, uint8_t player_score, uint8_t computer_score)
     ESP_LOGI(pcTaskGetName(0), "Start Sending Score");
 
     int attempt = 0;
-    // bool isSent = false;
-    // while (attempt < MAX_RETRY_ATTEMPTS && !isSent)
-    // {
+
     vTaskDelay(100 / portTICK_PERIOD_MS);
     ESP_LOGI(pcTaskGetName(0), "Attempt #%d to send score...", attempt + 1);
     Nrf24_send(dev, buffer); // Ensure correct send function signature
@@ -265,13 +254,6 @@ void sender_score(NRF24_t *dev, uint8_t player_score, uint8_t computer_score)
     // vTaskDelay(pdMS_TO_TICKS(1000)); // Wait before retrying
 }
 
-// if (!isSent)
-// {
-//     ESP_LOGE(pcTaskGetName(0), "Failed to send score after %d attempts.", MAX_RETRY_ATTEMPTS);
-// }
-// }
-
-// #endif // CONFIG_SENDER
 void receiver_score(NRF24_t dev)
 {
 
@@ -345,67 +327,67 @@ void receiver_best_move(NRF24_t dev)
         }
     }
 }
-void app_main(void)
-{
+// void app_main(void)
+// {
 
-    NRF24_t *dev = malloc(sizeof(NRF24_t));
-    Nrf_bestMove_config(dev);
-    // NRF24_t dev_score = Nrf_bestMove_config(dev_score);
-    // receiver_best_move(dev_score);
-    while (1)
-    {
+//     NRF24_t *dev = malloc(sizeof(NRF24_t));
+//     Nrf_bestMove_config(dev);
+//     // NRF24_t dev_score = Nrf_bestMove_config(dev_score);
+//     // receiver_best_move(dev_score);
+//     while (1)
+//     {
 
-        printf("Starting the loop\n");
-        // vTaskDelay(15000 / portTICK_PERIOD_MS);
-        // //     printf("Sending first batch of scores\n");
-        sender_best_move(dev,0,0,true);
-        vTaskDelay(15000 / portTICK_PERIOD_MS);
-        sender_best_move(dev,1,1,true);
-        vTaskDelay(15000 / portTICK_PERIOD_MS);
-        sender_best_move(dev,2,2,true);
-        vTaskDelay(15000 / portTICK_PERIOD_MS);
-        // sender_score(dev, 0, 1);
-        // vTaskDelay(15000 / portTICK_PERIOD_MS);
-        // sender_best_move(dev,0,1,true);
-        // vTaskDelay(15000 / portTICK_PERIOD_MS);
-        // sender_best_move(dev,2,1,true);
-        // vTaskDelay(15000 / portTICK_PERIOD_MS);
-        // sender_best_move(dev,2,1,true);
-        // vTaskDelay(15000 / portTICK_PERIOD_MS);
-        // sender_best_move(dev,2,1,true);
-        // vTaskDelay(15000 / portTICK_PERIOD_MS);
-        // sender_best_move(dev,2,1,true);
-        // vTaskDelay(15000 / portTICK_PERIOD_MS);
-        // sender_best_move(dev,2,1,true);
-        // vTaskDelay(15000 / portTICK_PERIOD_MS);
+//         printf("Starting the loop\n");
+//         // vTaskDelay(15000 / portTICK_PERIOD_MS);
+//         // //     printf("Sending first batch of scores\n");
+//         sender_best_move(dev,0,0,true);
+//         vTaskDelay(15000 / portTICK_PERIOD_MS);
+//         sender_best_move(dev,1,1,true);
+//         vTaskDelay(15000 / portTICK_PERIOD_MS);
+//         sender_best_move(dev,2,2,true);
+//         vTaskDelay(15000 / portTICK_PERIOD_MS);
+//         // sender_score(dev, 0, 1);
+//         // vTaskDelay(15000 / portTICK_PERIOD_MS);
+//         // sender_best_move(dev,0,1,true);
+//         // vTaskDelay(15000 / portTICK_PERIOD_MS);
+//         // sender_best_move(dev,2,1,true);
+//         // vTaskDelay(15000 / portTICK_PERIOD_MS);
+//         // sender_best_move(dev,2,1,true);
+//         // vTaskDelay(15000 / portTICK_PERIOD_MS);
+//         // sender_best_move(dev,2,1,true);
+//         // vTaskDelay(15000 / portTICK_PERIOD_MS);
+//         // sender_best_move(dev,2,1,true);
+//         // vTaskDelay(15000 / portTICK_PERIOD_MS);
+//         // sender_best_move(dev,2,1,true);
+//         // vTaskDelay(15000 / portTICK_PERIOD_MS);
 
 
-        // sender_score(dev, 1, 2);
-        // vTaskDelay(15000 / portTICK_PERIOD_MS);
+//         // sender_score(dev, 1, 2);
+//         // vTaskDelay(15000 / portTICK_PERIOD_MS);
 
-        // // //     // vTaskDelay(2000 / portTICK_PERIOD_MS);
-        //     printf("Sending second batch of moves\n");
-        // sender_score(dev, 8, 10);
+//         // // //     // vTaskDelay(2000 / portTICK_PERIOD_MS);
+//         //     printf("Sending second batch of moves\n");
+//         // sender_score(dev, 8, 10);
 
-        // }
+//         // }
 
-        // sender_best_move(dev,2,1,true);
-    }
-    // // vTaskDelay(5000 / portTICK_PERIOD_MS);
-    // // printf("Sending second batch of moves\n");
-    // // sender_best_move(dev, 0, 0, false);
-    // vTaskDelay(5000 / portTICK_PERIOD_MS);
+//         // sender_best_move(dev,2,1,true);
+//     }
+//     // // vTaskDelay(5000 / portTICK_PERIOD_MS);
+//     // // printf("Sending second batch of moves\n");
+//     // // sender_best_move(dev, 0, 0, false);
+//     // vTaskDelay(5000 / portTICK_PERIOD_MS);
 
-    // // printf("Sending second batch of moves\n");
-    // // sender_best_move(dev, 1, 2, COMPUTER_MOVE);
-    // // printf("Sending third batch of moves\n");
-    // // sender_best_move(dev, 3, 2, COMPUTER_MOVE);
-    // }
-    // printf("Sending first batch of moves\n");
-    // NRF24_t dev = sender_best_move(1, 2);
-    // vTaskDelay(1000 / portTICK_PERIOD_MS);
-    // printf("Sending second batch of moves\n");
-    // sender_best_move_2(dev, 0, 0);
-    // printf("Sending third batch of moves\n");
-    // sender_best_move_2(dev, 0, 0);
-}
+//     // // printf("Sending second batch of moves\n");
+//     // // sender_best_move(dev, 1, 2, COMPUTER_MOVE);
+//     // // printf("Sending third batch of moves\n");
+//     // // sender_best_move(dev, 3, 2, COMPUTER_MOVE);
+//     // }
+//     // printf("Sending first batch of moves\n");
+//     // NRF24_t dev = sender_best_move(1, 2);
+//     // vTaskDelay(1000 / portTICK_PERIOD_MS);
+//     // printf("Sending second batch of moves\n");
+//     // sender_best_move_2(dev, 0, 0);
+//     // printf("Sending third batch of moves\n");
+//     // sender_best_move_2(dev, 0, 0);
+// }

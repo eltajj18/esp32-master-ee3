@@ -17,8 +17,8 @@ volatile bool is_processing = false;
 // #define BLINK_GPIO_1 2
 #define BUTTON_GPIO 18
 
-NRF24_t dev_score;
-NRF24_t dev_medium_move;
+NRF24_t *dev_score;
+NRF24_t *dev_medium_move;
 // int count = 0;
 uint8_t player_score = 0;
 uint8_t computer_score = 0;
@@ -65,7 +65,6 @@ void button_press_task(void *pvParameter)
     char *game_state = get_game_state();
     char board[3][3] = {};
     transformArrayTo3x3(game_state, board);
-    // drawsa();
     draw(board);
 
     char firstMoveSymbol;
@@ -73,44 +72,56 @@ void button_press_task(void *pvParameter)
     printf("Computer plays as: %c\n", COMPUTER_MOVE);
 
     vTaskDelay(200 / portTICK_PERIOD_MS);
-    if (!isMovesLeft(board))
+    // int evaluation = evaluate(board);
+    // evaluate_game(evaluation);
+    //  if (evaluate(board) == 10 || evaluate(board) == -10 || !isMovesLeft(board)) {
+    //     evaluate_game(evaluate(board));
+    //     printf("The score is: %d\n", evaluate(board));
+    // }
+    // else {
+    //     printf("No winner yet\n");
+    //     Move mediumMove = medium(board);
+    //     printf("The best move is: %d %d\n", mediumMove.row, mediumMove.col);
+
+    //     // Update the board with the computer's move
+    //     board[mediumMove.row][mediumMove.col] = COMPUTER_MOVE;
+    //     draw(board); // Print the board after making the move
+    //     sender_best_move(dev_medium_move, mediumMove.row, mediumMove.col, isComputerMoveO());
+    //     vTaskDelay(100 / portTICK_PERIOD_MS);
+    // }
+    int evaluation = evaluate(board);
+    if (evaluation == 10)
     {
-        int evaluation = evaluate(board);
+        // Computer wins
         evaluate_game(evaluation);
-        printf("The score is: %d\n", evaluation);
-        // sender_score(dev_score, player_score, computer_score);
+        printf("Computer wins. The score is: %d\n", evaluation);
+    }
+    else if (evaluation == -10)
+    {
+        // Player wins
+        evaluate_game(evaluation);
+        printf("Player wins. The score is: %d\n", evaluation);
+    }
+    else if (!isMovesLeft(board))
+    {
+        // Draw
+        evaluate_game(evaluation);
+        printf("It's a draw. The score is: %d\n", evaluation);
     }
     else
     {
-        if (evaluate(board) == 0)
-        {
-            /*Check if there is no winnner*/
-            Move mediumMove = medium(board);
-            printf("The best move is: %d %d\n", mediumMove.row, mediumMove.col);
-            sender_best_move(dev_medium_move, mediumMove.row, mediumMove.col, isComputerMoveO());
-            // board[mediumMove.row][mediumMove.col] = COMPUTER_MOVE;
-            // if (evaluate(board) != 0)
-            // {
-            //     vTaskDelay(3000 / portTICK_PERIOD_MS); // wait for the machine to draw the board then send the score for dramatic effect
-            //     evaluate_game(evaluate(board));
-            //     printf("The score is: %d\n", evaluate(board));
-            //     // sender_score(dev_score, player_score, computer_score);
-            // }
+        // No winner yet, continue the game
+        printf("No winner yet\n");
+        Move mediumMove = medium(board);
+        printf("The best move is: %d %d\n", mediumMove.row, mediumMove.col);
 
-            // else
-            // {
-            //     draw(board); // otherwise just draw the board and move to show the output
-            // }
-        }
-        else
-        {
-            /*if there is then give the score*/
-            int evaluation = evaluate(board);
-            evaluate_game(evaluation);
-            printf("The score is: %d\n", evaluation);
-            // sender_score(dev_score, player_score, computer_score);
-        }
+        // Update the board with the computer's move
+        board[mediumMove.row][mediumMove.col] = COMPUTER_MOVE;
+        draw(board); // Print the board after making the move
+        sender_best_move(dev_medium_move, mediumMove.row, mediumMove.col, isComputerMoveO());
+        vTaskDelay(100 / portTICK_PERIOD_MS);
     }
+
     vTaskDelay(3000 / portTICK_PERIOD_MS); // wait for the machine to draw the board
 cleanup:
     // Clean up and prepare for the next button press
@@ -137,10 +148,12 @@ void app_main(void)
     gpio_pullup_en(BUTTON_GPIO);
 
     /*Configure Nrf24 that is responsible for sending best move coordinations*/
-    dev_medium_move = Nrf_bestMove_config(dev_medium_move);
+    dev_medium_move = malloc(sizeof(NRF24_t));
+    Nrf_bestMove_config(dev_medium_move);
 
     /*Configure Nrf24 that is responsible for sending score*/
-    dev_score = Nrf_score_config(dev_score);
+    // dev_score = malloc(sizeof(NRF24_t));
+    // Nrf_score_config(dev_score);
 
     while (1)
     {

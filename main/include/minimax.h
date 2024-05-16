@@ -1,10 +1,6 @@
 #ifndef MINIMAX_H
 #define MINIMAX_H
 
-
-// #define PLAYER 'O'
-// #define COMPUTER 'X'
-
 // Define the struct Move here since it's used as a return type for findBestMove
 typedef struct Move {
     int row, col;

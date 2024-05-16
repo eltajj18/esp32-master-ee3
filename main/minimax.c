@@ -16,10 +16,14 @@ void draw(char b[3][3])
     printf("---+---+---\n");
     printf(" %c | %c | %c\n", b[2][0], b[2][1], b[2][2]);
 }
-bool isBoardEmpty(char board[3][3]) {
-    for (int i = 0; i < 3; i++) {
-        for (int j = 0; j < 3; j++) {
-            if (board[i][j] != ' ') {
+bool isBoardEmpty(char board[3][3])
+{
+    for (int i = 0; i < 3; i++)
+    {
+        for (int j = 0; j < 3; j++)
+        {
+            if (board[i][j] != ' ')
+            {
                 return false;
             }
         }
@@ -161,52 +165,53 @@ int minimax(char board[3][3], int depth, bool isMax)
 // Function to find the best move for the computer
 Move findBestMove(char board[3][3])
 {
-    if (isBoardEmpty(board)) {
-    Move randomMove;
-    // Board is entirely empty, so any random cell is guaranteed to be empty
-    randomMove.row = rand() % 3; // Random row, 0 to 2
-    randomMove.col = rand() % 3; // Random column, 0 to 2
-    return randomMove;
-}
-else{
-    
-    int bestVal = -1000;
-    Move bestMove = {-1, -1}; // Initialize the best move with invalid position
-    vTaskDelay(200 / portTICK_PERIOD_MS);
-    // Traverse all cells, evaluate minimax function for all empty cells, and return the cell with optimal value.
-    for (int i = 0; i < 3; i++)
+    if (isBoardEmpty(board))
     {
-        for (int j = 0; j < 3; j++)
+        Move randomMove;
+        // Board is entirely empty, so any random cell is guaranteed to be empty
+        randomMove.row = rand() % 3; // Random row, 0 to 2
+        randomMove.col = rand() % 3; // Random column, 0 to 2
+        return randomMove;
+    }
+    else
+    {
+
+        int bestVal = -1000;
+        Move bestMove = {-1, -1}; // Initialize the best move with invalid position
+        vTaskDelay(200 / portTICK_PERIOD_MS);
+        // Traverse all cells, evaluate minimax function for all empty cells, and return the cell with optimal value.
+        for (int i = 0; i < 3; i++)
         {
-            // Check if cell is empty
-            if (board[i][j] == ' ')
+            for (int j = 0; j < 3; j++)
             {
-                // Make the move
-                board[i][j] = COMPUTER_MOVE;
-
-                // Compute evaluation function for this move.
-                // int moveVal = minimax(board, 0, false);
-                // vTaskDelay(20 / portTICK_PERIOD_MS);
-                int moveVal = minimax(board, 1, false);
-
-                // Undo the move
-                board[i][j] = ' ';
-
-                // If the value of the current move is more than the best value, update the best move
-                if (moveVal > bestVal)
+                // Check if cell is empty
+                if (board[i][j] == ' ')
                 {
-                    bestMove.row = i;
-                    bestMove.col = j;
-                    bestVal = moveVal;
+                    // Make the move
+                    board[i][j] = COMPUTER_MOVE;
+
+                    // Compute evaluation function for this move.
+                    // int moveVal = minimax(board, 0, false);
+                    // vTaskDelay(20 / portTICK_PERIOD_MS);
+                    int moveVal = minimax(board, 1, false);
+
+                    // Undo the move
+                    board[i][j] = ' ';
+
+                    // If the value of the current move is more than the best value, update the best move
+                    if (moveVal > bestVal)
+                    {
+                        bestMove.row = i;
+                        bestMove.col = j;
+                        bestVal = moveVal;
+                    }
                 }
             }
         }
-    }
 
-    return bestMove;
+        return bestMove;
     }
 }
-
 
 void transformArrayTo3x3(char *gamestate, char board[3][3])
 {
@@ -282,8 +287,25 @@ Move medium(char board[3][3])
         move = findBestMove(board);               // Use the best move
     }
     else
-    {   printf("Computer chose a random move\n");
+    {
+        printf("Computer chose a random move\n");
         move = findRandomEmptyMove(board); // Make a random move
     }
     return move;
 }
+// void app_main(void)
+// {
+
+//     char board[3][3] = {
+//         {'O', 'O', 'X'},
+//         {' ', 'X', ' '},
+//         {'X', ' ', ' '}
+//     };
+//     //  evaluate(board);
+//      if(evaluate(board) == 0){
+//          printf("No winner yet\n");
+//      }
+//      else{
+//          printf("There is a winner\n");
+//      }
+// }
